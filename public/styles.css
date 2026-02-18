@@ -119,12 +119,14 @@ select {
   grid-template-columns: 320px 1fr;
   grid-template-areas:
     "spot chart"
-    "fear chart";
+    "fear chart"
+    "m2 m2";
 }
 
 .btc-spot { grid-area: spot; }
 .fear-card { grid-area: fear; }
 .chart-card { grid-area: chart; }
+.m2-card { grid-area: m2; }
 
 .macro-layout {
   grid-template-columns: 1fr 340px;

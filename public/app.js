@@ -9,9 +9,11 @@ const fearGreedValueEl = document.getElementById("fearGreedValue");
 const fearGreedClassEl = document.getElementById("fearGreedClass");
 const fearGreedMetaEl = document.getElementById("fearGreedMeta");
 const fearGreedBarEl = document.getElementById("fearGreedBar");
+const m2BtcMetaEl = document.getElementById("m2BtcMeta");
 
 const priceChartCanvas = document.getElementById("priceChart");
 const liquidityChartCanvas = document.getElementById("liquidityChart");
+const m2BtcChartCanvas = document.getElementById("m2BtcChart");
 
 const liquidityMetricsEl = document.getElementById("liquidityMetrics");
 const ratesMetricsEl = document.getElementById("ratesMetrics");
@@ -29,6 +31,7 @@ const calendarUpcoming = document.getElementById("calendarUpcoming");
 
 let priceChart;
 let liquidityChart;
+let m2BtcChart;
 let calendarEvents = [];
 let calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
@@ -187,6 +190,77 @@ function renderPriceChart(points) {
   });
 }
 
+function renderM2BtcChart(points) {
+  if (m2BtcChart) { m2BtcChart.destroy(); m2BtcChart = null; }
+
+  if (!Array.isArray(points) || !points.length) {
+    if (m2BtcMetaEl) m2BtcMetaEl.textContent = "M2/BTC series unavailable";
+    return;
+  }
+
+  const labels = points.map(item => new Date(item.date).toLocaleDateString("en-US", { month: "short", year: "2-digit" }));
+  const btcValues = points.map(item => Number(item.btc));
+  const m2Values = points.map(item => Number(item.m2) / 1000);
+
+  m2BtcChart = new Chart(m2BtcChartCanvas, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "BTC / USD",
+          data: btcValues,
+          borderColor: "#1a73e8",
+          backgroundColor: "rgba(26, 115, 232, 0.12)",
+          borderWidth: 2.2,
+          pointRadius: 0,
+          tension: 0.2,
+          yAxisID: "yBtc"
+        },
+        {
+          label: "M2 (USD Trillions)",
+          data: m2Values,
+          borderColor: "#34a853",
+          backgroundColor: "rgba(52, 168, 83, 0.14)",
+          borderWidth: 2.2,
+          pointRadius: 0,
+          tension: 0.2,
+          yAxisID: "yM2"
+        }
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: "bottom",
+          labels: { boxWidth: 12, boxHeight: 12 }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } },
+        yBtc: {
+          position: "left",
+          grid: { color: "rgba(95, 99, 104, 0.14)" },
+          ticks: { callback: value => formatUsd(value) }
+        },
+        yM2: {
+          position: "right",
+          grid: { display: false },
+          ticks: { callback: value => `$${Number(value).toFixed(1)}T` }
+        }
+      }
+    }
+  });
+
+  if (m2BtcMetaEl) {
+    const start = points[0]?.date;
+    const end = points[points.length - 1]?.date;
+    m2BtcMetaEl.textContent = `M2SL (FRED) vs BTC/USD · ${formatDate(start)} to ${formatDate(end)}`;
+  }
+}
+
 function metricHtml({ name, value, date }) {
   return `<article class="metric"><p class="name">${name}</p><p class="value">${value ?? "N/A"}</p><p class="date">${date ? `As of ${formatDate(date)}` : ""}</p></article>`;
 }
@@ -330,12 +404,13 @@ async function loadDashboard() {
   refreshBtn.textContent = "Refreshing...";
 
   const macroPromise = api("/api/macro/v1", 14000);
-  const [currentRes, historyRes, returnsRes, fearGreedRes, calendarRes] = await Promise.allSettled([
+  const [currentRes, historyRes, returnsRes, fearGreedRes, calendarRes, m2BtcRes] = await Promise.allSettled([
     api("/api/btc/current", 9000),
     api(`/api/btc/history?days=${encodeURIComponent(rangeSelect.value)}`, 11000),
     api("/api/btc/returns", 11000),
     api("/api/bitcoin/fear-greed", 9000),
-    api("/api/calendar", 12000)
+    api("/api/calendar", 12000),
+    api("/api/bitcoin/m2-vs-btc", 12000)
   ]);
 
   const currentPayload = currentRes.status === "fulfilled" ? currentRes.value : null;
@@ -355,6 +430,9 @@ async function loadDashboard() {
 
   const fearGreedPayload = fearGreedRes.status === "fulfilled" ? fearGreedRes.value : null;
   renderFearGreed(fearGreedPayload);
+
+  const m2BtcPayload = m2BtcRes.status === "fulfilled" ? m2BtcRes.value : null;
+  renderM2BtcChart(m2BtcPayload?.points || []);
 
 
   if (calendarRes.status === "fulfilled") {

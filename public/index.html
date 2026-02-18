@@ -21,9 +21,9 @@
           BTC Chart
           <select id="rangeSelect">
             <option value="7">7D</option>
-            <option value="30" selected>30D</option>
+            <option value="30">30D</option>
             <option value="90">90D</option>
-            <option value="365">1Y</option>
+            <option value="365" selected>1Y</option>
             <option value="max">Max</option>
           </select>
         </label>
@@ -63,6 +63,16 @@
             </div>
             <div class="chart-wrap">
               <canvas id="priceChart"></canvas>
+            </div>
+          </section>
+
+          <section class="card m2-card" aria-live="polite">
+            <div class="card-head">
+              <p class="label">M2 Money Supply vs Bitcoin</p>
+              <p id="m2BtcMeta" class="meta tiny">US M2SL (FRED) vs BTC/USD</p>
+            </div>
+            <div class="chart-wrap compact">
+              <canvas id="m2BtcChart"></canvas>
             </div>
           </section>
         </div>

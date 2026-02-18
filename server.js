@@ -73,6 +73,23 @@ async function fetchJson(url, timeoutMs = 12000) {
   }
 }
 
+async function fetchText(url, timeoutMs = 12000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) throw new Error(`Request failed (${response.status})`);
+    return response.text();
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      throw new Error(`Request timed out after ${timeoutMs}ms`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 function latest(points) {
   return points.length ? points[points.length - 1] : null;
 }
@@ -308,6 +325,63 @@ function calcYtdReturn(points) {
   return ((end - start) / start) * 100;
 }
 
+function dayFromTs(ts) {
+  return new Date(ts).toISOString().slice(0, 10);
+}
+
+function alignBtcToDates(btcPrices, isoDates) {
+  if (!Array.isArray(btcPrices) || !btcPrices.length || !Array.isArray(isoDates) || !isoDates.length) {
+    return [];
+  }
+
+  const btcByDay = new Map();
+  for (const [ts, value] of btcPrices) {
+    const v = Number(value);
+    if (!Number.isFinite(ts) || !Number.isFinite(v)) continue;
+    btcByDay.set(dayFromTs(ts), v);
+  }
+
+  const knownDays = Array.from(btcByDay.keys()).sort();
+  const aligned = [];
+  let idx = 0;
+  let last = null;
+
+  for (const isoDate of isoDates) {
+    while (idx < knownDays.length && knownDays[idx] <= isoDate) {
+      last = btcByDay.get(knownDays[idx]);
+      idx += 1;
+    }
+    aligned.push(last);
+  }
+
+  return aligned;
+}
+
+function alignSeriesToDates(points, isoDates) {
+  if (!Array.isArray(points) || !points.length || !Array.isArray(isoDates) || !isoDates.length) {
+    return [];
+  }
+
+  const sorted = points
+    .map(item => ({ date: item?.date, value: Number(item?.value) }))
+    .filter(item => item.date && Number.isFinite(item.value))
+    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+
+  const aligned = [];
+  let idx = 0;
+  let last = null;
+
+  for (const isoDate of isoDates) {
+    while (idx < sorted.length && sorted[idx].date <= isoDate) {
+      last = sorted[idx].value;
+      idx += 1;
+    }
+    aligned.push(last);
+  }
+
+  return aligned;
+}
+
 function readMacroCache() {
   try {
     ensureDataDir();
@@ -347,6 +421,25 @@ async function fetchFredSeries(seriesId) {
   return observations
     .map(item => ({ date: item.date, value: Number(item.value) }))
     .filter(item => item.date && Number.isFinite(item.value));
+}
+
+async function fetchFredSeriesCsvFallback(seriesId) {
+  const url = new URL("https://fred.stlouisfed.org/graph/fredgraph.csv");
+  url.searchParams.set("id", seriesId);
+
+  const csv = await fetchText(url, 12000);
+  const lines = csv.split(/\r?\n/).filter(Boolean);
+  if (lines.length < 2) return [];
+
+  const points = [];
+  for (let i = 1; i < lines.length; i += 1) {
+    const [dateRaw, valueRaw] = lines[i].split(",");
+    if (!dateRaw || !valueRaw) continue;
+    const value = Number(valueRaw);
+    if (!Number.isFinite(value)) continue;
+    points.push({ date: dateRaw.trim(), value });
+  }
+  return points;
 }
 
 function buildMacroPayload(seriesMap, statusMap) {
@@ -593,6 +686,65 @@ async function handleFearGreed(_url, res) {
   }
 }
 
+async function handleM2VsBtc(_url, res) {
+  try {
+    const [m2SeriesRaw, btcSeriesRaw] = await Promise.all([
+      (async () => {
+        if (FRED_API_KEY) {
+          try {
+            return await fetchFredSeries("M2SL");
+          } catch {
+            return fetchFredSeriesCsvFallback("M2SL");
+          }
+        }
+        return fetchFredSeriesCsvFallback("M2SL");
+      })(),
+      (async () => {
+        if (FRED_API_KEY) {
+          try {
+            return await fetchFredSeries("CBBTCUSD");
+          } catch {
+            return fetchFredSeriesCsvFallback("CBBTCUSD");
+          }
+        }
+        return fetchFredSeriesCsvFallback("CBBTCUSD");
+      })()
+    ]);
+
+    const m2Series = (m2SeriesRaw || []).slice(-220);
+    const m2Tail = m2Series.slice(-120);
+    const dates = m2Tail.map(point => point.date);
+    const btcAligned = alignSeriesToDates(btcSeriesRaw || [], dates);
+
+    const points = m2Tail
+      .map((point, i) => {
+        const btc = Number(btcAligned[i]);
+        if (!Number.isFinite(point?.value) || !Number.isFinite(btc)) return null;
+        return {
+          date: point.date,
+          m2: Number(point.value),
+          btc
+        };
+      })
+      .filter(Boolean);
+
+    if (!points.length) {
+      sendJson(res, 500, { error: "No overlapping M2/BTC data points available" });
+      return;
+    }
+
+    sendJson(res, 200, {
+      points,
+      source: {
+        m2Series: "FRED M2SL",
+        btc: "FRED CBBTCUSD"
+      }
+    });
+  } catch (error) {
+    sendJson(res, 500, { error: error.message || "Failed to fetch M2 vs BTC data" });
+  }
+}
+
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || `localhost:${PORT}`}`);
@@ -618,6 +770,10 @@ const server = http.createServer(async (req, res) => {
 
   if (url.pathname === "/api/bitcoin/fear-greed") {
     return handleFearGreed(url, res);
+  }
+
+  if (url.pathname === "/api/bitcoin/m2-vs-btc") {
+    return handleM2VsBtc(url, res);
   }
 
   if (url.pathname === "/api/macro/v1") {
