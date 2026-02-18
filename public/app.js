@@ -3,7 +3,12 @@ const priceMetaEl = document.getElementById("priceMeta");
 const returnsRowEl = document.getElementById("returnsRow");
 const refreshBtn = document.getElementById("refreshBtn");
 const rangeSelect = document.getElementById("rangeSelect");
+const btcRangeControl = document.getElementById("btcRangeControl");
 const liquidityMetaEl = document.getElementById("liquidityMeta");
+const fearGreedValueEl = document.getElementById("fearGreedValue");
+const fearGreedClassEl = document.getElementById("fearGreedClass");
+const fearGreedMetaEl = document.getElementById("fearGreedMeta");
+const fearGreedBarEl = document.getElementById("fearGreedBar");
 
 const priceChartCanvas = document.getElementById("priceChart");
 const liquidityChartCanvas = document.getElementById("liquidityChart");
@@ -12,10 +17,20 @@ const liquidityMetricsEl = document.getElementById("liquidityMetrics");
 const ratesMetricsEl = document.getElementById("ratesMetrics");
 const regimePillsEl = document.getElementById("regimePills");
 const regimeRationaleEl = document.getElementById("regimeRationale");
-const eventsRowEl = document.getElementById("eventsRow");
+
+const tabs = document.querySelectorAll(".tab");
+const panels = document.querySelectorAll(".tab-panel");
+
+const calPrevBtn = document.getElementById("calPrevBtn");
+const calNextBtn = document.getElementById("calNextBtn");
+const calendarMonthLabel = document.getElementById("calendarMonthLabel");
+const calendarGrid = document.getElementById("calendarGrid");
+const calendarUpcoming = document.getElementById("calendarUpcoming");
 
 let priceChart;
 let liquidityChart;
+let calendarEvents = [];
+let calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
 function formatUsd(value, digits = 0) {
   return new Intl.NumberFormat("en-US", {
@@ -46,6 +61,10 @@ function formatDate(value) {
   return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+function toIsoDate(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).toISOString().slice(0, 10);
+}
+
 async function api(path, timeoutMs = 12000) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -56,13 +75,17 @@ async function api(path, timeoutMs = 12000) {
     if (!response.ok) throw new Error(payload.error || `Request failed (${response.status})`);
     return payload;
   } catch (error) {
-    if (error?.name === "AbortError") {
-      throw new Error(`Request timed out after ${timeoutMs}ms`);
-    }
+    if (error?.name === "AbortError") throw new Error(`Request timed out after ${timeoutMs}ms`);
     throw error;
   } finally {
     clearTimeout(timeoutId);
   }
+}
+
+function setActiveTab(tabName) {
+  tabs.forEach(tab => tab.classList.toggle("active", tab.dataset.tab === tabName));
+  panels.forEach(panel => panel.classList.toggle("active", panel.id === `panel-${tabName}`));
+  btcRangeControl.classList.toggle("hidden", tabName !== "bitcoin");
 }
 
 function renderPriceCard(current, returns) {
@@ -89,12 +112,44 @@ function renderPriceCard(current, returns) {
 
   returnsRowEl.innerHTML = chips.map(item => {
     const numeric = Number(item.value);
-    if (!Number.isFinite(numeric)) {
-      return `<span class="chip">${item.label}: N/A</span>`;
-    }
+    if (!Number.isFinite(numeric)) return `<span class="chip">${item.label}: N/A</span>`;
     const tone = numeric >= 0 ? "positive" : "negative";
     return `<span class="chip ${tone}">${item.label}: ${formatPercent(numeric)}</span>`;
   }).join("");
+}
+
+
+function renderFearGreed(payload) {
+  const value = Number(payload?.value);
+  const classification = String(payload?.classification || "Unknown");
+  const updatedAt = payload?.updatedAt || null;
+
+  if (!Number.isFinite(value)) {
+    fearGreedValueEl.textContent = "N/A";
+    fearGreedClassEl.textContent = "Unavailable";
+    fearGreedClassEl.classList.remove("fg-fear", "fg-neutral", "fg-greed");
+    fearGreedMetaEl.textContent = "Source unavailable";
+    fearGreedBarEl.style.width = "0%";
+    return;
+  }
+
+  fearGreedValueEl.textContent = `${Math.round(value)}`;
+  fearGreedClassEl.textContent = classification;
+  fearGreedClassEl.classList.remove("fg-fear", "fg-neutral", "fg-greed");
+
+  const lower = classification.toLowerCase();
+  if (lower.includes("fear")) {
+    fearGreedClassEl.classList.add("fg-fear");
+  } else if (lower.includes("greed")) {
+    fearGreedClassEl.classList.add("fg-greed");
+  } else {
+    fearGreedClassEl.classList.add("fg-neutral");
+  }
+
+  fearGreedBarEl.style.width = `${Math.max(0, Math.min(100, value))}%`;
+  fearGreedMetaEl.textContent = updatedAt
+    ? `Updated ${new Date(updatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · Source: Alternative.me`
+    : "Source: Alternative.me";
 }
 
 function renderPriceChart(points) {
@@ -107,32 +162,25 @@ function renderPriceChart(points) {
     type: "line",
     data: {
       labels,
-      datasets: [
-        {
-          label: "BTC / USD",
-          data: values,
-          borderColor: "#1a73e8",
-          borderWidth: 2.5,
-          pointRadius: 0,
-          tension: 0.22,
-          fill: true,
-          backgroundColor: "rgba(26, 115, 232, 0.14)"
-        }
-      ]
+      datasets: [{
+        label: "BTC / USD",
+        data: values,
+        borderColor: "#1a73e8",
+        borderWidth: 2.5,
+        pointRadius: 0,
+        tension: 0.22,
+        fill: true,
+        backgroundColor: "rgba(26, 115, 232, 0.14)"
+      }]
     },
     options: {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: {
-          grid: { display: false },
-          ticks: { maxTicksLimit: 8 }
-        },
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
         y: {
           grid: { color: "rgba(95, 99, 104, 0.16)" },
-          ticks: {
-            callback: value => formatUsd(value)
-          }
+          ticks: { callback: value => formatUsd(value) }
         }
       }
     }
@@ -140,13 +188,7 @@ function renderPriceChart(points) {
 }
 
 function metricHtml({ name, value, date }) {
-  return `
-    <article class="metric">
-      <p class="name">${name}</p>
-      <p class="value">${value ?? "N/A"}</p>
-      <p class="date">${date ? `As of ${formatDate(date)}` : ""}</p>
-    </article>
-  `;
+  return `<article class="metric"><p class="name">${name}</p><p class="value">${value ?? "N/A"}</p><p class="date">${date ? `As of ${formatDate(date)}` : ""}</p></article>`;
 }
 
 function renderLiquidity(macro) {
@@ -155,49 +197,35 @@ function renderLiquidity(macro) {
     metricHtml({ name: "Fed Balance Sheet", value: formatMillions(m.fedBalanceSheet?.value), date: m.fedBalanceSheet?.date }),
     metricHtml({ name: "Reverse Repo", value: formatBillions(m.reverseRepo?.value), date: m.reverseRepo?.date }),
     metricHtml({ name: "Treasury General Account", value: formatBillions(m.treasuryGeneralAccount?.value), date: m.treasuryGeneralAccount?.date }),
-    metricHtml({
-      name: "Net Liquidity Index",
-      value: Number.isFinite(Number(m.netLiquidityIndex?.value)) ? Number(m.netLiquidityIndex.value).toFixed(2) : "N/A",
-      date: m.netLiquidityIndex?.date
-    })
+    metricHtml({ name: "Net Liquidity Index", value: Number.isFinite(Number(m.netLiquidityIndex?.value)) ? Number(m.netLiquidityIndex.value).toFixed(2) : "N/A", date: m.netLiquidityIndex?.date })
   ].join("");
 
   const cacheState = macro.cacheState || "unknown";
-  const age = Number.isFinite(Number(macro.cacheAgeMinutes)) ? ` · cache ${macro.cacheAgeMinutes}m old` : "";
-  const okSummary = Number.isFinite(Number(macro.okSeriesCount))
-    ? ` · ${macro.okSeriesCount}/${macro.totalSeriesCount || 0} series`
-    : "";
+  const age = Number.isFinite(Number(macro.cacheAgeMinutes)) ? ` · cache ${macro.cacheAgeMinutes}m` : "";
+  const okSummary = Number.isFinite(Number(macro.okSeriesCount)) ? ` · ${macro.okSeriesCount}/${macro.totalSeriesCount || 0} series` : "";
   liquidityMetaEl.textContent = `Composite = normalized Fed balance sheet - RRP - TGA · ${cacheState}${age}${okSummary}`;
 
   const series = Array.isArray(macro.liquiditySeries) ? macro.liquiditySeries : [];
   const labels = series.map(item => new Date(item.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }));
   const values = series.map(item => item.netLiquidityIndex);
 
-  if (liquidityChart) {
-    liquidityChart.destroy();
-    liquidityChart = null;
-  }
-
-  if (!values.length) {
-    return;
-  }
+  if (liquidityChart) { liquidityChart.destroy(); liquidityChart = null; }
+  if (!values.length) return;
 
   liquidityChart = new Chart(liquidityChartCanvas, {
     type: "line",
     data: {
       labels,
-      datasets: [
-        {
-          label: "Net Liquidity Index",
-          data: values,
-          borderColor: "#34a853",
-          borderWidth: 2,
-          pointRadius: 0,
-          tension: 0.18,
-          fill: true,
-          backgroundColor: "rgba(52, 168, 83, 0.12)"
-        }
-      ]
+      datasets: [{
+        label: "Net Liquidity Index",
+        data: values,
+        borderColor: "#34a853",
+        borderWidth: 2,
+        pointRadius: 0,
+        tension: 0.18,
+        fill: true,
+        backgroundColor: "rgba(52, 168, 83, 0.12)"
+      }]
     },
     options: {
       maintainAspectRatio: false,
@@ -213,32 +241,15 @@ function renderLiquidity(macro) {
 function renderRates(macro) {
   const m = macro.metrics || {};
   ratesMetricsEl.innerHTML = [
-    metricHtml({
-      name: "10Y Treasury",
-      value: Number.isFinite(Number(m.tenYearYield?.value)) ? `${Number(m.tenYearYield.value).toFixed(2)}%` : "N/A",
-      date: m.tenYearYield?.date
-    }),
-    metricHtml({
-      name: "10Y Real Yield",
-      value: Number.isFinite(Number(m.realTenYearYield?.value)) ? `${Number(m.realTenYearYield.value).toFixed(2)}%` : "N/A",
-      date: m.realTenYearYield?.date
-    }),
-    metricHtml({
-      name: "DXY Broad",
-      value: Number.isFinite(Number(m.dxyBroad?.value)) ? Number(m.dxyBroad.value).toFixed(2) : "N/A",
-      date: m.dxyBroad?.date
-    }),
-    metricHtml({
-      name: "2s10s Curve",
-      value: Number.isFinite(Number(m.curveSpread?.value)) ? `${Number(m.curveSpread.value).toFixed(2)}%` : "N/A",
-      date: m.curveSpread?.date
-    })
+    metricHtml({ name: "10Y Treasury", value: Number.isFinite(Number(m.tenYearYield?.value)) ? `${Number(m.tenYearYield.value).toFixed(2)}%` : "N/A", date: m.tenYearYield?.date }),
+    metricHtml({ name: "10Y Real Yield", value: Number.isFinite(Number(m.realTenYearYield?.value)) ? `${Number(m.realTenYearYield.value).toFixed(2)}%` : "N/A", date: m.realTenYearYield?.date }),
+    metricHtml({ name: "DXY Broad", value: Number.isFinite(Number(m.dxyBroad?.value)) ? Number(m.dxyBroad.value).toFixed(2) : "N/A", date: m.dxyBroad?.date }),
+    metricHtml({ name: "2s10s Curve", value: Number.isFinite(Number(m.curveSpread?.value)) ? `${Number(m.curveSpread.value).toFixed(2)}%` : "N/A", date: m.curveSpread?.date })
   ].join("");
 }
 
 function renderRegime(macro) {
-  const regime = macro.regime;
-
+  const regime = macro.regime || { liquidity: "Unknown", rates: "Unknown", macroRisk: "Unknown", rationale: [] };
   const tone = value => {
     if (value === "Low" || value === "Expanding" || value === "Easing") return "ok";
     if (value === "Medium" || value === "Unknown") return "warn";
@@ -251,17 +262,67 @@ function renderRegime(macro) {
     `<span class="pill ${tone(regime.macroRisk)}">Macro Risk: ${regime.macroRisk}</span>`
   ].join("");
 
-  regimeRationaleEl.innerHTML = regime.rationale.map(item => `<li>${item}</li>`).join("");
+  regimeRationaleEl.innerHTML = (regime.rationale || []).map(item => `<li>${item}</li>`).join("");
 }
 
-function renderEvents(events) {
-  eventsRowEl.innerHTML = events.map(event => `
-    <article class="event">
-      <p class="title">${event.title}</p>
-      <p class="date">${event.date}</p>
-      <p class="note">${event.note}</p>
+function renderCalendar() {
+  const year = calendarMonth.getFullYear();
+  const month = calendarMonth.getMonth();
+  const first = new Date(year, month, 1);
+  const start = new Date(first);
+  start.setDate(first.getDate() - first.getDay());
+
+  calendarMonthLabel.textContent = first.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+  const eventMap = new Map();
+  for (const event of calendarEvents) {
+    const key = event.dateISO;
+    if (!eventMap.has(key)) eventMap.set(key, []);
+    eventMap.get(key).push(event);
+  }
+
+  const todayIso = toIsoDate(new Date());
+  const cells = [];
+
+  for (let i = 0; i < 42; i += 1) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    const iso = toIsoDate(d);
+    const isCurrentMonth = d.getMonth() === month;
+    const dayEvents = eventMap.get(iso) || [];
+
+    cells.push(`
+      <div class="calendar-day ${isCurrentMonth ? "" : "muted"} ${iso === todayIso ? "today" : ""}">
+        <p class="day-num">${d.getDate()}</p>
+        <div class="day-events">
+          ${dayEvents.slice(0, 2).map(event => `<span class="dot ${event.type === "earnings" ? "earnings" : "macro"}">${event.title}</span>`).join("")}
+        </div>
+      </div>
+    `);
+  }
+
+  calendarGrid.innerHTML = cells.join("");
+
+  const nowIso = toIsoDate(new Date());
+  const upcoming = calendarEvents.filter(event => event.dateISO >= nowIso).slice(0, 12);
+  calendarUpcoming.innerHTML = upcoming.map(event => `
+    <article class="upcoming-item">
+      <p class="upcoming-title">${event.title}${event.subtitle ? ` · ${event.subtitle}` : ""}</p>
+      <p class="upcoming-date">${event.date}</p>
+      <p class="upcoming-note">${event.note}</p>
     </article>
   `).join("");
+}
+
+async function loadCalendar() {
+  try {
+    const payload = await api("/api/calendar", 12000);
+    calendarEvents = Array.isArray(payload.events) ? payload.events : [];
+    renderCalendar();
+  } catch {
+    calendarEvents = [];
+    renderCalendar();
+  }
 }
 
 async function loadDashboard() {
@@ -269,11 +330,12 @@ async function loadDashboard() {
   refreshBtn.textContent = "Refreshing...";
 
   const macroPromise = api("/api/macro/v1", 14000);
-
-  const [currentRes, historyRes, returnsRes] = await Promise.allSettled([
+  const [currentRes, historyRes, returnsRes, fearGreedRes, calendarRes] = await Promise.allSettled([
     api("/api/btc/current", 9000),
     api(`/api/btc/history?days=${encodeURIComponent(rangeSelect.value)}`, 11000),
-    api("/api/btc/returns", 11000)
+    api("/api/btc/returns", 11000),
+    api("/api/bitcoin/fear-greed", 9000),
+    api("/api/calendar", 12000)
   ]);
 
   const currentPayload = currentRes.status === "fulfilled" ? currentRes.value : null;
@@ -289,9 +351,18 @@ async function loadDashboard() {
     returnsRowEl.innerHTML = "";
   }
 
-  if (historyPayload?.prices?.length) {
-    renderPriceChart(historyPayload.prices);
+  if (historyPayload?.prices?.length) renderPriceChart(historyPayload.prices);
+
+  const fearGreedPayload = fearGreedRes.status === "fulfilled" ? fearGreedRes.value : null;
+  renderFearGreed(fearGreedPayload);
+
+
+  if (calendarRes.status === "fulfilled") {
+    calendarEvents = Array.isArray(calendarRes.value.events) ? calendarRes.value.events : [];
+  } else {
+    calendarEvents = [];
   }
+  renderCalendar();
 
   const macroRes = await Promise.allSettled([macroPromise]);
   const macroPayload = macroRes[0].status === "fulfilled" ? macroRes[0].value : null;
@@ -300,7 +371,6 @@ async function loadDashboard() {
     renderLiquidity(macroPayload);
     renderRates(macroPayload);
     renderRegime(macroPayload);
-    renderEvents(macroPayload.events || []);
   } else {
     liquidityMetaEl.textContent = "Macro feeds unavailable or timed out";
   }
@@ -309,7 +379,22 @@ async function loadDashboard() {
   refreshBtn.textContent = "Refresh";
 }
 
+for (const tab of tabs) {
+  tab.addEventListener("click", () => setActiveTab(tab.dataset.tab));
+}
+
+calPrevBtn.addEventListener("click", () => {
+  calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1);
+  renderCalendar();
+});
+
+calNextBtn.addEventListener("click", () => {
+  calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1);
+  renderCalendar();
+});
+
 refreshBtn.addEventListener("click", loadDashboard);
 rangeSelect.addEventListener("change", loadDashboard);
 
+setActiveTab("bitcoin");
 loadDashboard();

@@ -14,10 +14,10 @@
       <div>
         <p class="eyebrow">Macro Dashboard V1</p>
         <h1>Bitcoin-First Macro Pulse</h1>
-        <p class="subhead">Liquidity, rates, and dollar conditions for portfolio context.</p>
+        <p class="subhead">Liquidity, rates, dollar, and calendar from a Bitcoiner lens.</p>
       </div>
       <div class="actions">
-        <label class="range-select">
+        <label class="range-select" id="btcRangeControl">
           BTC Chart
           <select id="rangeSelect">
             <option value="7">7D</option>
@@ -31,54 +31,94 @@
       </div>
     </header>
 
-    <main class="layout">
-      <section class="card btc-spot" aria-live="polite">
-        <p class="label">Bitcoin / USD</p>
-        <p id="btcPrice" class="price">Loading...</p>
-        <p id="priceMeta" class="meta">Fetching market data...</p>
-        <div class="chip-row" id="returnsRow"></div>
+    <nav class="tabs" aria-label="Dashboard sections">
+      <button class="tab active" data-tab="bitcoin">Bitcoin</button>
+      <button class="tab" data-tab="macro">Macro</button>
+      <button class="tab" data-tab="calendar">Calendar</button>
+    </nav>
+
+    <main>
+      <section id="panel-bitcoin" class="tab-panel active">
+        <div class="layout bitcoin-layout">
+          <section class="card btc-spot" aria-live="polite">
+            <p class="label">Bitcoin / USD</p>
+            <p id="btcPrice" class="price">Loading...</p>
+            <p id="priceMeta" class="meta">Fetching market data...</p>
+            <div class="chip-row" id="returnsRow"></div>
+          </section>
+          <section class="card fear-card" aria-live="polite">
+            <p class="label">Fear &amp; Greed Index</p>
+            <p id="fearGreedValue" class="price small">--</p>
+            <p id="fearGreedClass" class="meta">Loading...</p>
+            <div class="fg-track" aria-hidden="true">
+              <div id="fearGreedBar" class="fg-fill"></div>
+            </div>
+            <p id="fearGreedMeta" class="meta tiny">Source: Alternative.me</p>
+          </section>
+
+
+          <section class="card chart-card">
+            <div class="card-head">
+              <p class="label">BTC Price Over Time</p>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="priceChart"></canvas>
+            </div>
+          </section>
+        </div>
       </section>
 
-      <section class="card chart-card">
-        <div class="card-head">
-          <p class="label">BTC Price Over Time</p>
-        </div>
-        <div class="chart-wrap">
-          <canvas id="priceChart"></canvas>
+      <section id="panel-macro" class="tab-panel">
+        <div class="layout macro-layout">
+          <section class="card liquidity-card">
+            <div class="card-head">
+              <p class="label">Dollar Liquidity Pulse</p>
+              <p id="liquidityMeta" class="meta tiny">FRED series composite</p>
+            </div>
+            <div class="chart-wrap compact">
+              <canvas id="liquidityChart"></canvas>
+            </div>
+            <div class="metric-grid" id="liquidityMetrics"></div>
+          </section>
+
+          <section class="card rates-card">
+            <div class="card-head">
+              <p class="label">Rates + Dollar</p>
+            </div>
+            <div class="metric-grid" id="ratesMetrics"></div>
+          </section>
+
+          <section class="card regime-card">
+            <div class="card-head">
+              <p class="label">Regime Summary</p>
+            </div>
+            <div class="pill-row" id="regimePills"></div>
+            <ul class="rationale" id="regimeRationale"></ul>
+          </section>
         </div>
       </section>
 
-      <section class="card liquidity-card">
-        <div class="card-head">
-          <p class="label">Dollar Liquidity Pulse</p>
-          <p id="liquidityMeta" class="meta tiny">FRED series composite</p>
-        </div>
-        <div class="chart-wrap compact">
-          <canvas id="liquidityChart"></canvas>
-        </div>
-        <div class="metric-grid" id="liquidityMetrics"></div>
-      </section>
+      <section id="panel-calendar" class="tab-panel">
+        <div class="layout calendar-layout">
+          <section class="card calendar-card">
+            <div class="calendar-head">
+              <button id="calPrevBtn" class="button">Prev</button>
+              <p id="calendarMonthLabel" class="calendar-month">Month</p>
+              <button id="calNextBtn" class="button">Next</button>
+            </div>
+            <div class="calendar-weekdays">
+              <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+            </div>
+            <div id="calendarGrid" class="calendar-grid"></div>
+          </section>
 
-      <section class="card rates-card">
-        <div class="card-head">
-          <p class="label">Rates + Dollar</p>
+          <section class="card upcoming-card">
+            <div class="card-head">
+              <p class="label">Upcoming Releases + Earnings</p>
+            </div>
+            <div id="calendarUpcoming" class="upcoming-list"></div>
+          </section>
         </div>
-        <div class="metric-grid" id="ratesMetrics"></div>
-      </section>
-
-      <section class="card regime-card">
-        <div class="card-head">
-          <p class="label">Regime Summary</p>
-        </div>
-        <div class="pill-row" id="regimePills"></div>
-        <ul class="rationale" id="regimeRationale"></ul>
-      </section>
-
-      <section class="card events-card">
-        <div class="card-head">
-          <p class="label">Macro Event Strip</p>
-        </div>
-        <div class="events-row" id="eventsRow"></div>
       </section>
     </main>
 

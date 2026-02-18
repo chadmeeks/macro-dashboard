@@ -1,5 +1,5 @@
 {
-  "cachedAt": 1771378917604,
+  "cachedAt": 1771435363498,
   "payload": {
     "metrics": {
       "fedBalanceSheet": {
@@ -1875,19 +1875,25 @@
     "events": [
       {
         "id": "cpi",
+        "type": "macro",
         "title": "CPI Release",
+        "dateISO": "2026-03-12",
         "date": "Mar 12, 2026",
         "note": "Estimated calendar date"
       },
       {
         "id": "nfp",
+        "type": "macro",
         "title": "Nonfarm Payrolls",
+        "dateISO": "2026-03-06",
         "date": "Mar 6, 2026",
         "note": "Estimated calendar date"
       },
       {
         "id": "fomc",
+        "type": "macro",
         "title": "FOMC Decision",
+        "dateISO": "2026-03-10",
         "date": "Mar 10, 2026",
         "note": "Approx. 6-week cadence"
       }
@@ -1917,7 +1923,7 @@
     },
     "okSeriesCount": 7,
     "totalSeriesCount": 7,
-    "generatedAt": "2026-02-18T01:41:57.604Z",
+    "generatedAt": "2026-02-18T17:22:43.498Z",
     "cacheState": "fresh"
   }
 }

@@ -194,27 +194,81 @@ function fmtEventDate(date) {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+function toIsoDate(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).toISOString().slice(0, 10);
+}
+
 function buildEvents() {
-  return [
+  const releases = [
     {
       id: "cpi",
       title: "CPI Release",
-      date: fmtEventDate(nextMonthlyDay(12)),
+      dateObj: nextMonthlyDay(12),
       note: "Estimated calendar date"
     },
     {
       id: "nfp",
       title: "Nonfarm Payrolls",
-      date: fmtEventDate(nextFirstFriday()),
+      dateObj: nextFirstFriday(),
       note: "Estimated calendar date"
     },
     {
       id: "fomc",
       title: "FOMC Decision",
-      date: fmtEventDate(nextFomcEstimate()),
+      dateObj: nextFomcEstimate(),
       note: "Approx. 6-week cadence"
     }
   ];
+
+  return releases.map(item => ({
+    id: item.id,
+    type: "macro",
+    title: item.title,
+    dateISO: toIsoDate(item.dateObj),
+    date: fmtEventDate(item.dateObj),
+    note: item.note
+  }));
+}
+
+function nextScheduledDate(months, day, from = new Date()) {
+  const start = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+  for (let y = start.getFullYear(); y <= start.getFullYear() + 1; y += 1) {
+    for (const monthIndex of months) {
+      const d = new Date(y, monthIndex, day);
+      if (d >= start) return d;
+    }
+  }
+  return new Date(start.getFullYear() + 1, months[0], day);
+}
+
+function buildKeyEarningsEvents() {
+  const schedules = [
+    { ticker: "AAPL", company: "Apple", months: [0, 3, 6, 9], day: 30 },
+    { ticker: "MSFT", company: "Microsoft", months: [0, 3, 6, 9], day: 25 },
+    { ticker: "GOOGL", company: "Alphabet", months: [1, 3, 6, 9], day: 2 },
+    { ticker: "AMZN", company: "Amazon", months: [1, 3, 6, 9], day: 6 },
+    { ticker: "META", company: "Meta", months: [1, 3, 6, 9], day: 1 },
+    { ticker: "NVDA", company: "NVIDIA", months: [1, 4, 7, 10], day: 21 },
+    { ticker: "TSLA", company: "Tesla", months: [0, 3, 6, 9], day: 23 }
+  ];
+
+  return schedules.map(item => {
+    const d = nextScheduledDate(item.months, item.day);
+    return {
+      id: `earnings-${item.ticker.toLowerCase()}`,
+      type: "earnings",
+      title: `${item.ticker} Earnings`,
+      subtitle: item.company,
+      dateISO: toIsoDate(d),
+      date: fmtEventDate(d),
+      note: "Estimated earnings date"
+    };
+  });
+}
+
+function buildCalendarEvents() {
+  return [...buildEvents(), ...buildKeyEarningsEvents()]
+    .sort((a, b) => (a.dateISO < b.dateISO ? -1 : a.dateISO > b.dateISO ? 1 : 0));
 }
 
 function calcReturnPct(points, daysBack) {
@@ -518,6 +572,28 @@ async function handleMacroV1(_url, res) {
   sendJson(res, 200, payload);
 }
 
+async function handleFearGreed(_url, res) {
+  try {
+    const url = new URL("https://api.alternative.me/fng/");
+    url.searchParams.set("limit", "1");
+    url.searchParams.set("format", "json");
+
+    const payload = await fetchJson(url, 9000);
+    const item = payload?.data?.[0] || null;
+    const value = Number(item?.value);
+
+    sendJson(res, 200, {
+      value: Number.isFinite(value) ? value : null,
+      classification: item?.value_classification || "Unknown",
+      updatedAt: item?.timestamp ? new Date(Number(item.timestamp) * 1000).toISOString() : null,
+      source: "alternative.me"
+    });
+  } catch (error) {
+    sendJson(res, 500, { error: error.message || "Failed to fetch Fear & Greed" });
+  }
+}
+
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || `localhost:${PORT}`}`);
 
@@ -540,8 +616,16 @@ const server = http.createServer(async (req, res) => {
     return handleBtcReturns(url, res);
   }
 
+  if (url.pathname === "/api/bitcoin/fear-greed") {
+    return handleFearGreed(url, res);
+  }
+
   if (url.pathname === "/api/macro/v1") {
     return handleMacroV1(url, res);
+  }
+
+  if (url.pathname === "/api/calendar") {
+    return sendJson(res, 200, { events: buildCalendarEvents() });
   }
 
   const urlPath = url.pathname === "/" ? "/index.html" : url.pathname;
