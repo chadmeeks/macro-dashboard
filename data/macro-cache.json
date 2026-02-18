@@ -1,0 +1,1923 @@
+{
+  "cachedAt": 1771378917604,
+  "payload": {
+    "metrics": {
+      "fedBalanceSheet": {
+        "date": "2026-02-11",
+        "value": 6622382
+      },
+      "reverseRepo": {
+        "date": "2026-02-17",
+        "value": 0.441
+      },
+      "treasuryGeneralAccount": {
+        "date": "2026-02-11",
+        "value": 915306
+      },
+      "tenYearYield": {
+        "date": "2026-02-13",
+        "value": 4.04
+      },
+      "twoYearYield": {
+        "date": "2026-02-13",
+        "value": 3.4
+      },
+      "realTenYearYield": {
+        "date": "2026-02-13",
+        "value": 1.77
+      },
+      "dxyBroad": {
+        "date": "2026-02-13",
+        "value": 117.5258
+      },
+      "curveSpread": {
+        "date": "2026-02-13",
+        "value": 0.64
+      },
+      "netLiquidityIndex": {
+        "date": "2026-02-11",
+        "value": 2.11
+      }
+    },
+    "liquiditySeries": [
+      {
+        "date": "2021-02-24",
+        "netLiquidityIndex": -52.07,
+        "walcl": 7590111,
+        "rrp": 187.913,
+        "tga": 1529977
+      },
+      {
+        "date": "2021-03-03",
+        "netLiquidityIndex": -28.03,
+        "walcl": 7557524,
+        "rrp": 97.781,
+        "tga": 1429549
+      },
+      {
+        "date": "2021-03-10",
+        "netLiquidityIndex": -21.08,
+        "walcl": 7579901,
+        "rrp": 85.654,
+        "tga": 1360064
+      },
+      {
+        "date": "2021-03-17",
+        "netLiquidityIndex": -12.33,
+        "walcl": 7693506,
+        "rrp": 78.788,
+        "tga": 1272583
+      },
+      {
+        "date": "2021-03-24",
+        "netLiquidityIndex": -0.11,
+        "walcl": 7719622,
+        "rrp": 79.983,
+        "tga": 1061138
+      },
+      {
+        "date": "2021-03-31",
+        "netLiquidityIndex": -1.97,
+        "walcl": 7688988,
+        "rrp": 95.248,
+        "tga": 1025727
+      },
+      {
+        "date": "2021-04-07",
+        "netLiquidityIndex": -1.61,
+        "walcl": 7708882,
+        "rrp": 99.653,
+        "tga": 1010103
+      },
+      {
+        "date": "2021-04-14",
+        "netLiquidityIndex": 9.85,
+        "walcl": 7793104,
+        "rrp": 76.446,
+        "tga": 925094
+      },
+      {
+        "date": "2021-04-21",
+        "netLiquidityIndex": 7.16,
+        "walcl": 7820948,
+        "rrp": 67.67,
+        "tga": 1015902
+      },
+      {
+        "date": "2021-04-28",
+        "netLiquidityIndex": 9.02,
+        "walcl": 7780962,
+        "rrp": 67.82,
+        "tga": 967689
+      },
+      {
+        "date": "2021-05-05",
+        "netLiquidityIndex": 12.33,
+        "walcl": 7810486,
+        "rrp": 58.77,
+        "tga": 953689
+      },
+      {
+        "date": "2021-05-12",
+        "netLiquidityIndex": 11.82,
+        "walcl": 7830663,
+        "rrp": 77.817,
+        "tga": 898779
+      },
+      {
+        "date": "2021-05-19",
+        "netLiquidityIndex": 16.56,
+        "walcl": 7922883,
+        "rrp": 73.196,
+        "tga": 866119
+      },
+      {
+        "date": "2021-05-26",
+        "netLiquidityIndex": 21.3,
+        "walcl": 7903541,
+        "rrp": 63.207,
+        "tga": 812473
+      },
+      {
+        "date": "2021-06-02",
+        "netLiquidityIndex": 22.4,
+        "walcl": 7935703,
+        "rrp": 68.983,
+        "tga": 783235
+      },
+      {
+        "date": "2021-06-09",
+        "netLiquidityIndex": 24.08,
+        "walcl": 7952327,
+        "rrp": 76.818,
+        "tga": 730235
+      },
+      {
+        "date": "2021-06-16",
+        "netLiquidityIndex": 26.66,
+        "walcl": 8064257,
+        "rrp": 96,
+        "tga": 653889
+      },
+      {
+        "date": "2021-06-23",
+        "netLiquidityIndex": 16.53,
+        "walcl": 8101945,
+        "rrp": 126.058,
+        "tga": 734689
+      },
+      {
+        "date": "2021-06-30",
+        "netLiquidityIndex": 3.55,
+        "walcl": 8078544,
+        "rrp": 182.148,
+        "tga": 745962
+      },
+      {
+        "date": "2021-07-07",
+        "netLiquidityIndex": -7.51,
+        "walcl": 8097773,
+        "rrp": 234.422,
+        "tga": 753364
+      },
+      {
+        "date": "2021-07-14",
+        "netLiquidityIndex": 21.57,
+        "walcl": 8201651,
+        "rrp": 119.987,
+        "tga": 704918
+      },
+      {
+        "date": "2021-07-21",
+        "netLiquidityIndex": 20.66,
+        "walcl": 8240530,
+        "rrp": 135.257,
+        "tga": 678103
+      },
+      {
+        "date": "2021-07-28",
+        "netLiquidityIndex": 25.01,
+        "walcl": 8221473,
+        "rrp": 139.493,
+        "tga": 578204
+      },
+      {
+        "date": "2021-08-04",
+        "netLiquidityIndex": 32.28,
+        "walcl": 8235073,
+        "rrp": 129.269,
+        "tga": 492668
+      },
+      {
+        "date": "2021-08-11",
+        "netLiquidityIndex": 34.51,
+        "walcl": 8257159,
+        "rrp": 136.305,
+        "tga": 434919
+      },
+      {
+        "date": "2021-08-18",
+        "netLiquidityIndex": 43.25,
+        "walcl": 8342598,
+        "rrp": 129.054,
+        "tga": 338808
+      },
+      {
+        "date": "2021-08-25",
+        "netLiquidityIndex": 43.41,
+        "walcl": 8332743,
+        "rrp": 137.31,
+        "tga": 301430
+      },
+      {
+        "date": "2021-09-01",
+        "netLiquidityIndex": 46.41,
+        "walcl": 8349173,
+        "rrp": 131.055,
+        "tga": 277650
+      },
+      {
+        "date": "2021-09-08",
+        "netLiquidityIndex": 51.67,
+        "walcl": 8357314,
+        "rrp": 113.435,
+        "tga": 253496
+      },
+      {
+        "date": "2021-09-15",
+        "netLiquidityIndex": 52.17,
+        "walcl": 8448770,
+        "rrp": 126.234,
+        "tga": 230328
+      },
+      {
+        "date": "2021-09-22",
+        "netLiquidityIndex": 56.41,
+        "walcl": 8489824,
+        "rrp": 89.496,
+        "tga": 308022
+      },
+      {
+        "date": "2021-09-29",
+        "netLiquidityIndex": 49.08,
+        "walcl": 8447981,
+        "rrp": 149.503,
+        "tga": 197744
+      },
+      {
+        "date": "2021-10-06",
+        "netLiquidityIndex": 43.65,
+        "walcl": 8464032,
+        "rrp": 193.378,
+        "tga": 135582
+      },
+      {
+        "date": "2021-10-13",
+        "netLiquidityIndex": 47.41,
+        "walcl": 8480942,
+        "rrp": 192.64,
+        "tga": 77858
+      },
+      {
+        "date": "2021-10-20",
+        "netLiquidityIndex": 47.11,
+        "walcl": 8564943,
+        "rrp": 200.85,
+        "tga": 83386
+      },
+      {
+        "date": "2021-10-27",
+        "netLiquidityIndex": 40.5,
+        "walcl": 8556181,
+        "rrp": 196.565,
+        "tga": 213291
+      },
+      {
+        "date": "2021-11-03",
+        "netLiquidityIndex": 33.26,
+        "walcl": 8574871,
+        "rrp": 214.786,
+        "tga": 280205
+      },
+      {
+        "date": "2021-11-10",
+        "netLiquidityIndex": 30.66,
+        "walcl": 8663117,
+        "rrp": 241.371,
+        "tga": 259293
+      },
+      {
+        "date": "2021-11-17",
+        "netLiquidityIndex": 22.95,
+        "walcl": 8674970,
+        "rrp": 291.785,
+        "tga": 211453
+      },
+      {
+        "date": "2021-11-24",
+        "netLiquidityIndex": 26.87,
+        "walcl": 8681771,
+        "rrp": 286.575,
+        "tga": 164087
+      },
+      {
+        "date": "2021-12-01",
+        "netLiquidityIndex": 3.06,
+        "walcl": 8650402,
+        "rrp": 399.167,
+        "tga": 152651
+      },
+      {
+        "date": "2021-12-08",
+        "netLiquidityIndex": 41.22,
+        "walcl": 8664524,
+        "rrp": 230.063,
+        "tga": 115117
+      },
+      {
+        "date": "2021-12-15",
+        "netLiquidityIndex": 42.99,
+        "walcl": 8756666,
+        "rrp": 233.488,
+        "tga": 104798
+      },
+      {
+        "date": "2021-12-22",
+        "netLiquidityIndex": 52.68,
+        "walcl": 8790495,
+        "rrp": 196.265,
+        "tga": 84954
+      },
+      {
+        "date": "2021-12-29",
+        "netLiquidityIndex": 47.32,
+        "walcl": 8757460,
+        "rrp": 184.499,
+        "tga": 211849
+      },
+      {
+        "date": "2022-01-05",
+        "netLiquidityIndex": 45.14,
+        "walcl": 8765721,
+        "rrp": 148.146,
+        "tga": 389751
+      },
+      {
+        "date": "2022-01-12",
+        "netLiquidityIndex": 39.99,
+        "walcl": 8788278,
+        "rrp": 156.911,
+        "tga": 456401
+      },
+      {
+        "date": "2022-01-19",
+        "netLiquidityIndex": 37.46,
+        "walcl": 8867834,
+        "rrp": 168.115,
+        "tga": 488697
+      },
+      {
+        "date": "2022-01-26",
+        "netLiquidityIndex": 38.25,
+        "walcl": 8860485,
+        "rrp": 129.95,
+        "tga": 614877
+      },
+      {
+        "date": "2022-02-02",
+        "netLiquidityIndex": 41.72,
+        "walcl": 8873211,
+        "rrp": 98.531,
+        "tga": 675773
+      },
+      {
+        "date": "2022-02-09",
+        "netLiquidityIndex": 40.31,
+        "walcl": 8878009,
+        "rrp": 102.838,
+        "tga": 686384
+      },
+      {
+        "date": "2022-02-16",
+        "netLiquidityIndex": 43.6,
+        "walcl": 8911033,
+        "rrp": 88.878,
+        "tga": 692541
+      },
+      {
+        "date": "2022-02-23",
+        "netLiquidityIndex": 50.87,
+        "walcl": 8928129,
+        "rrp": 54.772,
+        "tga": 697838
+      },
+      {
+        "date": "2022-03-02",
+        "netLiquidityIndex": 50.41,
+        "walcl": 8904455,
+        "rrp": 58.6,
+        "tga": 682903
+      },
+      {
+        "date": "2022-03-09",
+        "netLiquidityIndex": 40.55,
+        "walcl": 8910748,
+        "rrp": 114.114,
+        "tga": 652039
+      },
+      {
+        "date": "2022-03-16",
+        "netLiquidityIndex": 41.01,
+        "walcl": 8954306,
+        "rrp": 137.951,
+        "tga": 570606
+      },
+      {
+        "date": "2022-03-23",
+        "netLiquidityIndex": 31.55,
+        "walcl": 8962474,
+        "rrp": 171.78,
+        "tga": 614616
+      },
+      {
+        "date": "2022-03-30",
+        "netLiquidityIndex": 42.08,
+        "walcl": 8937142,
+        "rrp": 130.004,
+        "tga": 575065
+      },
+      {
+        "date": "2022-04-06",
+        "netLiquidityIndex": 49.73,
+        "walcl": 8937592,
+        "rrp": 94.021,
+        "tga": 574451
+      },
+      {
+        "date": "2022-04-13",
+        "netLiquidityIndex": 40.3,
+        "walcl": 8965487,
+        "rrp": 148.649,
+        "tga": 547308
+      },
+      {
+        "date": "2022-04-20",
+        "netLiquidityIndex": 28.96,
+        "walcl": 8955851,
+        "rrp": 157.537,
+        "tga": 711406
+      },
+      {
+        "date": "2022-04-27",
+        "netLiquidityIndex": -4.21,
+        "walcl": 8939199,
+        "rrp": 250.601,
+        "tga": 944328
+      },
+      {
+        "date": "2022-05-04",
+        "netLiquidityIndex": 15.45,
+        "walcl": 8939972,
+        "rrp": 157.353,
+        "tga": 945478
+      },
+      {
+        "date": "2022-05-11",
+        "netLiquidityIndex": 17.49,
+        "walcl": 8942008,
+        "rrp": 147.882,
+        "tga": 945658
+      },
+      {
+        "date": "2022-05-18",
+        "netLiquidityIndex": 25.78,
+        "walcl": 8945898,
+        "rrp": 124.69,
+        "tga": 886964
+      },
+      {
+        "date": "2022-05-25",
+        "netLiquidityIndex": 27.73,
+        "walcl": 8914281,
+        "rrp": 129.858,
+        "tga": 821535
+      },
+      {
+        "date": "2022-06-01",
+        "netLiquidityIndex": 24.26,
+        "walcl": 8915050,
+        "rrp": 154.859,
+        "tga": 789532
+      },
+      {
+        "date": "2022-06-08",
+        "netLiquidityIndex": 31.25,
+        "walcl": 8918254,
+        "rrp": 139.768,
+        "tga": 723384
+      },
+      {
+        "date": "2022-06-15",
+        "netLiquidityIndex": 34.77,
+        "walcl": 8932420,
+        "rrp": 142.272,
+        "tga": 656870
+      },
+      {
+        "date": "2022-06-22",
+        "netLiquidityIndex": 27.98,
+        "walcl": 8934346,
+        "rrp": 147.505,
+        "tga": 758283
+      },
+      {
+        "date": "2022-06-29",
+        "netLiquidityIndex": 28.34,
+        "walcl": 8913553,
+        "rrp": 144.214,
+        "tga": 756627
+      },
+      {
+        "date": "2022-07-06",
+        "netLiquidityIndex": 26.66,
+        "walcl": 8891851,
+        "rrp": 165.024,
+        "tga": 700457
+      },
+      {
+        "date": "2022-07-13",
+        "netLiquidityIndex": 41.2,
+        "walcl": 8895867,
+        "rrp": 109.436,
+        "tga": 652572
+      },
+      {
+        "date": "2022-07-20",
+        "netLiquidityIndex": 37.67,
+        "walcl": 8899213,
+        "rrp": 136.799,
+        "tga": 613878
+      },
+      {
+        "date": "2022-07-27",
+        "netLiquidityIndex": 28.87,
+        "walcl": 8890004,
+        "rrp": 180.417,
+        "tga": 602945
+      },
+      {
+        "date": "2022-08-03",
+        "netLiquidityIndex": 38.43,
+        "walcl": 8874620,
+        "rrp": 136.033,
+        "tga": 594115
+      },
+      {
+        "date": "2022-08-10",
+        "netLiquidityIndex": 34.95,
+        "walcl": 8879138,
+        "rrp": 162.802,
+        "tga": 557265
+      },
+      {
+        "date": "2022-08-17",
+        "netLiquidityIndex": 32.85,
+        "walcl": 8849762,
+        "rrp": 173.018,
+        "tga": 545321
+      },
+      {
+        "date": "2022-08-24",
+        "netLiquidityIndex": 37.29,
+        "walcl": 8851436,
+        "rrp": 154.841,
+        "tga": 535267
+      },
+      {
+        "date": "2022-08-31",
+        "netLiquidityIndex": 35.95,
+        "walcl": 8826093,
+        "rrp": 138.066,
+        "tga": 612536
+      },
+      {
+        "date": "2022-09-07",
+        "netLiquidityIndex": 30.12,
+        "walcl": 8822401,
+        "rrp": 173.641,
+        "tga": 581295
+      },
+      {
+        "date": "2022-09-14",
+        "netLiquidityIndex": 31.32,
+        "walcl": 8832759,
+        "rrp": 165.66,
+        "tga": 593808
+      },
+      {
+        "date": "2022-09-21",
+        "netLiquidityIndex": -6.29,
+        "walcl": 8816802,
+        "rrp": 315.657,
+        "tga": 692496
+      },
+      {
+        "date": "2022-09-28",
+        "netLiquidityIndex": 31.44,
+        "walcl": 8795567,
+        "rrp": 135.841,
+        "tga": 689569
+      },
+      {
+        "date": "2022-10-05",
+        "netLiquidityIndex": 30.16,
+        "walcl": 8759053,
+        "rrp": 153.177,
+        "tga": 633939
+      },
+      {
+        "date": "2022-10-12",
+        "netLiquidityIndex": 28.28,
+        "walcl": 8758969,
+        "rrp": 168.882,
+        "tga": 608302
+      },
+      {
+        "date": "2022-10-19",
+        "netLiquidityIndex": 31.45,
+        "walcl": 8743922,
+        "rrp": 152.727,
+        "tga": 607199
+      },
+      {
+        "date": "2022-10-26",
+        "netLiquidityIndex": 30.2,
+        "walcl": 8723090,
+        "rrp": 149.284,
+        "tga": 634548
+      },
+      {
+        "date": "2022-11-02",
+        "netLiquidityIndex": 24.92,
+        "walcl": 8676870,
+        "rrp": 179.315,
+        "tga": 598544
+      },
+      {
+        "date": "2022-11-09",
+        "netLiquidityIndex": 28.25,
+        "walcl": 8678886,
+        "rrp": 182.725,
+        "tga": 527479
+      },
+      {
+        "date": "2022-11-16",
+        "netLiquidityIndex": 23.9,
+        "walcl": 8625620,
+        "rrp": 204.625,
+        "tga": 502982
+      },
+      {
+        "date": "2022-11-23",
+        "netLiquidityIndex": 30.04,
+        "walcl": 8621390,
+        "rrp": 181.417,
+        "tga": 479474
+      },
+      {
+        "date": "2022-11-30",
+        "netLiquidityIndex": 30.17,
+        "walcl": 8584576,
+        "rrp": 168.645,
+        "tga": 511474
+      },
+      {
+        "date": "2022-12-07",
+        "netLiquidityIndex": 40.49,
+        "walcl": 8582735,
+        "rrp": 140.759,
+        "tga": 432335
+      },
+      {
+        "date": "2022-12-14",
+        "netLiquidityIndex": 38.88,
+        "walcl": 8583413,
+        "rrp": 168.939,
+        "tga": 355517
+      },
+      {
+        "date": "2022-12-21",
+        "netLiquidityIndex": 24.97,
+        "walcl": 8564411,
+        "rrp": 205.05,
+        "tga": 459780
+      },
+      {
+        "date": "2022-12-28",
+        "netLiquidityIndex": 40.61,
+        "walcl": 8551169,
+        "rrp": 138.283,
+        "tga": 427926
+      },
+      {
+        "date": "2023-01-04",
+        "netLiquidityIndex": 34.22,
+        "walcl": 8507429,
+        "rrp": 165.319,
+        "tga": 423625
+      },
+      {
+        "date": "2023-01-11",
+        "netLiquidityIndex": 32.48,
+        "walcl": 8508587,
+        "rrp": 187.367,
+        "tga": 372340
+      },
+      {
+        "date": "2023-01-18",
+        "netLiquidityIndex": 28.99,
+        "walcl": 8489039,
+        "rrp": 210.879,
+        "tga": 339018
+      },
+      {
+        "date": "2023-01-25",
+        "netLiquidityIndex": 11.19,
+        "walcl": 8470557,
+        "rrp": 252.432,
+        "tga": 491848
+      },
+      {
+        "date": "2023-02-01",
+        "netLiquidityIndex": -0.47,
+        "walcl": 8433610,
+        "rrp": 285.742,
+        "tga": 560089
+      },
+      {
+        "date": "2023-02-08",
+        "netLiquidityIndex": -33.65,
+        "walcl": 8435369,
+        "rrp": 460.731,
+        "tga": 493277
+      },
+      {
+        "date": "2023-02-15",
+        "netLiquidityIndex": 10.95,
+        "walcl": 8384767,
+        "rrp": 245.53,
+        "tga": 490379
+      },
+      {
+        "date": "2023-02-22",
+        "netLiquidityIndex": 13.37,
+        "walcl": 8382190,
+        "rrp": 237.307,
+        "tga": 477333
+      },
+      {
+        "date": "2023-03-01",
+        "netLiquidityIndex": 22.69,
+        "walcl": 8339684,
+        "rrp": 214.665,
+        "tga": 381245
+      },
+      {
+        "date": "2023-03-08",
+        "netLiquidityIndex": 24.74,
+        "walcl": 8342283,
+        "rrp": 218.03,
+        "tga": 333350
+      },
+      {
+        "date": "2023-03-15",
+        "netLiquidityIndex": 36.3,
+        "walcl": 8639300,
+        "rrp": 219.415,
+        "tga": 232866
+      },
+      {
+        "date": "2023-03-22",
+        "netLiquidityIndex": 35.09,
+        "walcl": 8733787,
+        "rrp": 227.273,
+        "tga": 259587
+      },
+      {
+        "date": "2023-03-29",
+        "netLiquidityIndex": 48.09,
+        "walcl": 8705942,
+        "rrp": 183.339,
+        "tga": 183577
+      },
+      {
+        "date": "2023-04-05",
+        "netLiquidityIndex": 47.76,
+        "walcl": 8632384,
+        "rrp": 181.637,
+        "tga": 168793
+      },
+      {
+        "date": "2023-04-12",
+        "netLiquidityIndex": 43.1,
+        "walcl": 8614797,
+        "rrp": 217.841,
+        "tga": 109208
+      },
+      {
+        "date": "2023-04-19",
+        "netLiquidityIndex": 43.55,
+        "walcl": 8593263,
+        "rrp": 198.277,
+        "tga": 166555
+      },
+      {
+        "date": "2023-04-26",
+        "netLiquidityIndex": 36.11,
+        "walcl": 8562768,
+        "rrp": 197.086,
+        "tga": 291702
+      },
+      {
+        "date": "2023-05-03",
+        "netLiquidityIndex": 36.88,
+        "walcl": 8503994,
+        "rrp": 193.66,
+        "tga": 269216
+      },
+      {
+        "date": "2023-05-10",
+        "netLiquidityIndex": 39.7,
+        "walcl": 8503017,
+        "rrp": 199.298,
+        "tga": 197666
+      },
+      {
+        "date": "2023-05-17",
+        "netLiquidityIndex": 40.3,
+        "walcl": 8456760,
+        "rrp": 213.666,
+        "tga": 116220
+      },
+      {
+        "date": "2023-05-24",
+        "netLiquidityIndex": 46.59,
+        "walcl": 8436255,
+        "rrp": 196.374,
+        "tga": 61952
+      },
+      {
+        "date": "2023-05-31",
+        "netLiquidityIndex": 47.7,
+        "walcl": 8385854,
+        "rrp": 189.632,
+        "tga": 48954
+      },
+      {
+        "date": "2023-06-07",
+        "netLiquidityIndex": 60.15,
+        "walcl": 8389325,
+        "rrp": 132.186,
+        "tga": 44756
+      },
+      {
+        "date": "2023-06-14",
+        "netLiquidityIndex": 53.02,
+        "walcl": 8388323,
+        "rrp": 150.509,
+        "tga": 102118
+      },
+      {
+        "date": "2023-06-21",
+        "netLiquidityIndex": 38.4,
+        "walcl": 8362060,
+        "rrp": 170.463,
+        "tga": 276850
+      },
+      {
+        "date": "2023-06-28",
+        "netLiquidityIndex": 31.42,
+        "walcl": 8340914,
+        "rrp": 171.018,
+        "tga": 390571
+      },
+      {
+        "date": "2023-07-05",
+        "netLiquidityIndex": 32.41,
+        "walcl": 8298312,
+        "rrp": 155.481,
+        "tga": 415441
+      },
+      {
+        "date": "2023-07-12",
+        "netLiquidityIndex": 14.34,
+        "walcl": 8296923,
+        "rrp": 214.445,
+        "tga": 514337
+      },
+      {
+        "date": "2023-07-19",
+        "netLiquidityIndex": 37.66,
+        "walcl": 8274552,
+        "rrp": 97.426,
+        "tga": 531135
+      },
+      {
+        "date": "2023-07-26",
+        "netLiquidityIndex": 30.33,
+        "walcl": 8243344,
+        "rrp": 125.73,
+        "tga": 543597
+      },
+      {
+        "date": "2023-08-02",
+        "netLiquidityIndex": 39.79,
+        "walcl": 8206764,
+        "rrp": 84.356,
+        "tga": 517459
+      },
+      {
+        "date": "2023-08-09",
+        "netLiquidityIndex": 42.32,
+        "walcl": 8208241,
+        "rrp": 91.966,
+        "tga": 444594
+      },
+      {
+        "date": "2023-08-16",
+        "netLiquidityIndex": 44.48,
+        "walcl": 8145727,
+        "rrp": 77.961,
+        "tga": 435795
+      },
+      {
+        "date": "2023-08-23",
+        "netLiquidityIndex": 45.09,
+        "walcl": 8139066,
+        "rrp": 80.303,
+        "tga": 413787
+      },
+      {
+        "date": "2023-08-30",
+        "netLiquidityIndex": 41.1,
+        "walcl": 8121316,
+        "rrp": 82.214,
+        "tga": 470800
+      },
+      {
+        "date": "2023-09-06",
+        "netLiquidityIndex": 45.9,
+        "walcl": 8101318,
+        "rrp": 57.492,
+        "tga": 470881
+      },
+      {
+        "date": "2023-09-13",
+        "netLiquidityIndex": 43.05,
+        "walcl": 8098779,
+        "rrp": 57.202,
+        "tga": 521507
+      },
+      {
+        "date": "2023-09-20",
+        "netLiquidityIndex": 40.79,
+        "walcl": 8024090,
+        "rrp": 28.818,
+        "tga": 640296
+      },
+      {
+        "date": "2023-09-27",
+        "netLiquidityIndex": 36.99,
+        "walcl": 8002064,
+        "rrp": 33.757,
+        "tga": 681143
+      },
+      {
+        "date": "2023-10-04",
+        "netLiquidityIndex": 35.82,
+        "walcl": 7955782,
+        "rrp": 38.24,
+        "tga": 668009
+      },
+      {
+        "date": "2023-10-11",
+        "netLiquidityIndex": 36.78,
+        "walcl": 7952054,
+        "rrp": 22.344,
+        "tga": 709160
+      },
+      {
+        "date": "2023-10-18",
+        "netLiquidityIndex": 30.85,
+        "walcl": 7933162,
+        "rrp": 34.999,
+        "tga": 759878
+      },
+      {
+        "date": "2023-10-25",
+        "netLiquidityIndex": 28.15,
+        "walcl": 7907830,
+        "rrp": 25.358,
+        "tga": 834418
+      },
+      {
+        "date": "2023-11-01",
+        "netLiquidityIndex": 25.77,
+        "walcl": 7866664,
+        "rrp": 36.275,
+        "tga": 820487
+      },
+      {
+        "date": "2023-11-08",
+        "netLiquidityIndex": 25.96,
+        "walcl": 7860691,
+        "rrp": 47.567,
+        "tga": 772686
+      },
+      {
+        "date": "2023-11-15",
+        "netLiquidityIndex": 30.95,
+        "walcl": 7814991,
+        "rrp": 28.574,
+        "tga": 738562
+      },
+      {
+        "date": "2023-11-22",
+        "netLiquidityIndex": 31.4,
+        "walcl": 7810814,
+        "rrp": 34.744,
+        "tga": 706017
+      },
+      {
+        "date": "2023-11-29",
+        "netLiquidityIndex": 29.8,
+        "walcl": 7796145,
+        "rrp": 31.966,
+        "tga": 739209
+      },
+      {
+        "date": "2023-12-06",
+        "netLiquidityIndex": 22.07,
+        "walcl": 7737385,
+        "rrp": 77.898,
+        "tga": 682509
+      },
+      {
+        "date": "2023-12-13",
+        "netLiquidityIndex": 35.49,
+        "walcl": 7739566,
+        "rrp": 21.066,
+        "tga": 658440
+      },
+      {
+        "date": "2023-12-20",
+        "netLiquidityIndex": 31.67,
+        "walcl": 7724063,
+        "rrp": 17.923,
+        "tga": 732196
+      },
+      {
+        "date": "2023-12-27",
+        "netLiquidityIndex": 31.01,
+        "walcl": 7712781,
+        "rrp": 20.128,
+        "tga": 731405
+      },
+      {
+        "date": "2024-01-03",
+        "netLiquidityIndex": 28.64,
+        "walcl": 7681024,
+        "rrp": 20.997,
+        "tga": 758448
+      },
+      {
+        "date": "2024-01-10",
+        "netLiquidityIndex": 29.71,
+        "walcl": 7686710,
+        "rrp": 19.416,
+        "tga": 747565
+      },
+      {
+        "date": "2024-01-17",
+        "netLiquidityIndex": 28.63,
+        "walcl": 7673741,
+        "rrp": 22.915,
+        "tga": 748883
+      },
+      {
+        "date": "2024-01-24",
+        "netLiquidityIndex": 24.48,
+        "walcl": 7677230,
+        "rrp": 29.4,
+        "tga": 799358
+      },
+      {
+        "date": "2024-01-31",
+        "netLiquidityIndex": 21.65,
+        "walcl": 7630124,
+        "rrp": 26.897,
+        "tga": 841550
+      },
+      {
+        "date": "2024-02-07",
+        "netLiquidityIndex": 25.92,
+        "walcl": 7631300,
+        "rrp": 17.331,
+        "tga": 802135
+      },
+      {
+        "date": "2024-02-14",
+        "netLiquidityIndex": 24.03,
+        "walcl": 7633874,
+        "rrp": 16.954,
+        "tga": 838005
+      },
+      {
+        "date": "2024-02-21",
+        "netLiquidityIndex": 25.51,
+        "walcl": 7581683,
+        "rrp": 18.817,
+        "tga": 785465
+      },
+      {
+        "date": "2024-02-28",
+        "netLiquidityIndex": 26.23,
+        "walcl": 7567807,
+        "rrp": 13.963,
+        "tga": 785821
+      },
+      {
+        "date": "2024-03-06",
+        "netLiquidityIndex": 26.7,
+        "walcl": 7538857,
+        "rrp": 13.707,
+        "tga": 767733
+      },
+      {
+        "date": "2024-03-13",
+        "netLiquidityIndex": 27.23,
+        "walcl": 7541969,
+        "rrp": 11.363,
+        "tga": 768369
+      },
+      {
+        "date": "2024-03-20",
+        "netLiquidityIndex": 23.75,
+        "walcl": 7514348,
+        "rrp": 14.173,
+        "tga": 809298
+      },
+      {
+        "date": "2024-03-27",
+        "netLiquidityIndex": 23.48,
+        "walcl": 7484739,
+        "rrp": 14.402,
+        "tga": 802233
+      },
+      {
+        "date": "2024-04-03",
+        "netLiquidityIndex": 21.31,
+        "walcl": 7439558,
+        "rrp": 29.172,
+        "tga": 768651
+      },
+      {
+        "date": "2024-04-10",
+        "netLiquidityIndex": 25.68,
+        "walcl": 7438176,
+        "rrp": 25.369,
+        "tga": 704971
+      },
+      {
+        "date": "2024-04-17",
+        "netLiquidityIndex": 15.04,
+        "walcl": 7405506,
+        "rrp": 48.073,
+        "tga": 796535
+      },
+      {
+        "date": "2024-04-24",
+        "netLiquidityIndex": 5.07,
+        "walcl": 7402434,
+        "rrp": 56.22,
+        "tga": 941430
+      },
+      {
+        "date": "2024-05-01",
+        "netLiquidityIndex": 7.12,
+        "walcl": 7362474,
+        "rrp": 49.071,
+        "tga": 917177
+      },
+      {
+        "date": "2024-05-08",
+        "netLiquidityIndex": 18.86,
+        "walcl": 7353408,
+        "rrp": 10.179,
+        "tga": 851591
+      },
+      {
+        "date": "2024-05-15",
+        "netLiquidityIndex": 21.84,
+        "walcl": 7304272,
+        "rrp": 8.436,
+        "tga": 787133
+      },
+      {
+        "date": "2024-05-22",
+        "netLiquidityIndex": 21.64,
+        "walcl": 7299566,
+        "rrp": 25.392,
+        "tga": 725376
+      },
+      {
+        "date": "2024-05-29",
+        "netLiquidityIndex": 23.28,
+        "walcl": 7284319,
+        "rrp": 21.776,
+        "tga": 704335
+      },
+      {
+        "date": "2024-06-05",
+        "netLiquidityIndex": 25.97,
+        "walcl": 7255687,
+        "rrp": 4.622,
+        "tga": 710309
+      },
+      {
+        "date": "2024-06-12",
+        "netLiquidityIndex": 27.98,
+        "walcl": 7258974,
+        "rrp": 5.231,
+        "tga": 673573
+      },
+      {
+        "date": "2024-06-19",
+        "netLiquidityIndex": 25.19,
+        "walcl": 7252542,
+        "rrp": 4.496,
+        "tga": 723410
+      },
+      {
+        "date": "2024-06-26",
+        "netLiquidityIndex": 22.46,
+        "walcl": 7231163,
+        "rrp": 4.124,
+        "tga": 765417
+      },
+      {
+        "date": "2024-07-03",
+        "netLiquidityIndex": 22.61,
+        "walcl": 7221520,
+        "rrp": 3.516,
+        "tga": 761373
+      },
+      {
+        "date": "2024-07-10",
+        "netLiquidityIndex": 23.66,
+        "walcl": 7224079,
+        "rrp": 5.484,
+        "tga": 736402
+      },
+      {
+        "date": "2024-07-17",
+        "netLiquidityIndex": 22.16,
+        "walcl": 7208247,
+        "rrp": 6.96,
+        "tga": 751593
+      },
+      {
+        "date": "2024-07-24",
+        "netLiquidityIndex": 21.42,
+        "walcl": 7205455,
+        "rrp": 4.102,
+        "tga": 774315
+      },
+      {
+        "date": "2024-07-31",
+        "netLiquidityIndex": 19.79,
+        "walcl": 7178391,
+        "rrp": 5.931,
+        "tga": 786486
+      },
+      {
+        "date": "2024-08-07",
+        "netLiquidityIndex": 20.86,
+        "walcl": 7175256,
+        "rrp": 4.699,
+        "tga": 770931
+      },
+      {
+        "date": "2024-08-14",
+        "netLiquidityIndex": 19.75,
+        "walcl": 7177688,
+        "rrp": 4.005,
+        "tga": 794120
+      },
+      {
+        "date": "2024-08-21",
+        "netLiquidityIndex": 21.6,
+        "walcl": 7139952,
+        "rrp": 6.941,
+        "tga": 736494
+      },
+      {
+        "date": "2024-08-28",
+        "netLiquidityIndex": 21.67,
+        "walcl": 7123238,
+        "rrp": 2.435,
+        "tga": 745851
+      },
+      {
+        "date": "2024-09-04",
+        "netLiquidityIndex": 20.39,
+        "walcl": 7112567,
+        "rrp": 10.642,
+        "tga": 733959
+      },
+      {
+        "date": "2024-09-11",
+        "netLiquidityIndex": 18.47,
+        "walcl": 7115001,
+        "rrp": 14.096,
+        "tga": 755958
+      },
+      {
+        "date": "2024-09-18",
+        "netLiquidityIndex": 16.34,
+        "walcl": 7109137,
+        "rrp": 19.504,
+        "tga": 771194
+      },
+      {
+        "date": "2024-09-25",
+        "netLiquidityIndex": 13.8,
+        "walcl": 7080059,
+        "rrp": 19.166,
+        "tga": 806771
+      },
+      {
+        "date": "2024-10-02",
+        "netLiquidityIndex": 6.69,
+        "walcl": 7046925,
+        "rrp": 51.802,
+        "tga": 798277
+      },
+      {
+        "date": "2024-10-09",
+        "netLiquidityIndex": 12.39,
+        "walcl": 7046840,
+        "rrp": 23.792,
+        "tga": 802115
+      },
+      {
+        "date": "2024-10-16",
+        "netLiquidityIndex": 14.26,
+        "walcl": 7039284,
+        "rrp": 16.983,
+        "tga": 791792
+      },
+      {
+        "date": "2024-10-23",
+        "netLiquidityIndex": 12.78,
+        "walcl": 7029408,
+        "rrp": 12.814,
+        "tga": 829991
+      },
+      {
+        "date": "2024-10-30",
+        "netLiquidityIndex": 12.59,
+        "walcl": 7013490,
+        "rrp": 10.754,
+        "tga": 835237
+      },
+      {
+        "date": "2024-11-06",
+        "netLiquidityIndex": 13.04,
+        "walcl": 6994299,
+        "rrp": 4.903,
+        "tga": 842051
+      },
+      {
+        "date": "2024-11-13",
+        "netLiquidityIndex": 12.56,
+        "walcl": 6967108,
+        "rrp": 7.152,
+        "tga": 832186
+      },
+      {
+        "date": "2024-11-20",
+        "netLiquidityIndex": 16.45,
+        "walcl": 6923731,
+        "rrp": 5.886,
+        "tga": 751873
+      },
+      {
+        "date": "2024-11-27",
+        "netLiquidityIndex": 15.2,
+        "walcl": 6905140,
+        "rrp": 3.761,
+        "tga": 775250
+      },
+      {
+        "date": "2024-12-04",
+        "netLiquidityIndex": 14.66,
+        "walcl": 6895827,
+        "rrp": 1.559,
+        "tga": 789516
+      },
+      {
+        "date": "2024-12-11",
+        "netLiquidityIndex": 15.17,
+        "walcl": 6897485,
+        "rrp": 3.172,
+        "tga": 775067
+      },
+      {
+        "date": "2024-12-18",
+        "netLiquidityIndex": 15.88,
+        "walcl": 6889332,
+        "rrp": 0.905,
+        "tga": 767932
+      },
+      {
+        "date": "2024-12-25",
+        "netLiquidityIndex": 15.94,
+        "walcl": 6885963,
+        "rrp": 1.129,
+        "tga": 764770
+      },
+      {
+        "date": "2025-01-01",
+        "netLiquidityIndex": 16.64,
+        "walcl": 6852491,
+        "rrp": 6.52,
+        "tga": 719873
+      },
+      {
+        "date": "2025-01-08",
+        "netLiquidityIndex": 21.31,
+        "walcl": 6853554,
+        "rrp": 2.503,
+        "tga": 652636
+      },
+      {
+        "date": "2025-01-15",
+        "netLiquidityIndex": 21.85,
+        "walcl": 6834070,
+        "rrp": 1.077,
+        "tga": 641225
+      },
+      {
+        "date": "2025-01-22",
+        "netLiquidityIndex": 19.5,
+        "walcl": 6831760,
+        "rrp": 2.314,
+        "tga": 677282
+      },
+      {
+        "date": "2025-01-29",
+        "netLiquidityIndex": 13.21,
+        "walcl": 6818186,
+        "rrp": 2.217,
+        "tga": 784206
+      },
+      {
+        "date": "2025-02-05",
+        "netLiquidityIndex": 10.72,
+        "walcl": 6810935,
+        "rrp": 7.561,
+        "tga": 805593
+      },
+      {
+        "date": "2025-02-12",
+        "netLiquidityIndex": 10.42,
+        "walcl": 6813513,
+        "rrp": 3.24,
+        "tga": 828102
+      },
+      {
+        "date": "2025-02-19",
+        "netLiquidityIndex": 11.41,
+        "walcl": 6782332,
+        "rrp": 5.62,
+        "tga": 790062
+      },
+      {
+        "date": "2025-02-26",
+        "netLiquidityIndex": 17.88,
+        "walcl": 6766101,
+        "rrp": 2.514,
+        "tga": 681161
+      },
+      {
+        "date": "2025-03-05",
+        "netLiquidityIndex": 25.24,
+        "walcl": 6756764,
+        "rrp": 2.233,
+        "tga": 548331
+      },
+      {
+        "date": "2025-03-12",
+        "netLiquidityIndex": 27.47,
+        "walcl": 6759571,
+        "rrp": 1.485,
+        "tga": 512581
+      },
+      {
+        "date": "2025-03-19",
+        "netLiquidityIndex": 31.68,
+        "walcl": 6755982,
+        "rrp": 1.703,
+        "tga": 435936
+      },
+      {
+        "date": "2025-03-26",
+        "netLiquidityIndex": 35.31,
+        "walcl": 6740253,
+        "rrp": 3.211,
+        "tga": 360177
+      },
+      {
+        "date": "2025-04-02",
+        "netLiquidityIndex": 37.21,
+        "walcl": 6723452,
+        "rrp": 5.045,
+        "tga": 313326
+      },
+      {
+        "date": "2025-04-09",
+        "netLiquidityIndex": 38.17,
+        "walcl": 6727416,
+        "rrp": 2.874,
+        "tga": 306049
+      },
+      {
+        "date": "2025-04-16",
+        "netLiquidityIndex": 31.99,
+        "walcl": 6727113,
+        "rrp": 0.838,
+        "tga": 422983
+      },
+      {
+        "date": "2025-04-23",
+        "netLiquidityIndex": 21.25,
+        "walcl": 6726930,
+        "rrp": 2.601,
+        "tga": 606632
+      },
+      {
+        "date": "2025-04-30",
+        "netLiquidityIndex": 21.72,
+        "walcl": 6709277,
+        "rrp": 1.554,
+        "tga": 595741
+      },
+      {
+        "date": "2025-05-07",
+        "netLiquidityIndex": 20.57,
+        "walcl": 6710889,
+        "rrp": 10.361,
+        "tga": 583727
+      },
+      {
+        "date": "2025-05-14",
+        "netLiquidityIndex": 20.78,
+        "walcl": 6713270,
+        "rrp": 11.708,
+        "tga": 575846
+      },
+      {
+        "date": "2025-05-21",
+        "netLiquidityIndex": 26.21,
+        "walcl": 6688726,
+        "rrp": 3.047,
+        "tga": 503055
+      },
+      {
+        "date": "2025-05-28",
+        "netLiquidityIndex": 28.23,
+        "walcl": 6673244,
+        "rrp": 1.523,
+        "tga": 467204
+      },
+      {
+        "date": "2025-06-04",
+        "netLiquidityIndex": 32.28,
+        "walcl": 6672885,
+        "rrp": 5.893,
+        "tga": 378947
+      },
+      {
+        "date": "2025-06-11",
+        "netLiquidityIndex": 35.2,
+        "walcl": 6677155,
+        "rrp": 4.803,
+        "tga": 332907
+      },
+      {
+        "date": "2025-06-18",
+        "netLiquidityIndex": 31.72,
+        "walcl": 6681056,
+        "rrp": 20.339,
+        "tga": 337762
+      },
+      {
+        "date": "2025-06-25",
+        "netLiquidityIndex": 31.89,
+        "walcl": 6662200,
+        "rrp": 10.551,
+        "tga": 364375
+      },
+      {
+        "date": "2025-07-02",
+        "netLiquidityIndex": 31.68,
+        "walcl": 6659598,
+        "rrp": 12.605,
+        "tga": 359516
+      },
+      {
+        "date": "2025-07-09",
+        "netLiquidityIndex": 14.22,
+        "walcl": 6661912,
+        "rrp": 105.993,
+        "tga": 319889
+      },
+      {
+        "date": "2025-07-16",
+        "netLiquidityIndex": 36.71,
+        "walcl": 6659273,
+        "rrp": 5.667,
+        "tga": 296247
+      },
+      {
+        "date": "2025-07-23",
+        "netLiquidityIndex": 34.99,
+        "walcl": 6657715,
+        "rrp": 6.485,
+        "tga": 323176
+      },
+      {
+        "date": "2025-07-30",
+        "netLiquidityIndex": 32.82,
+        "walcl": 6642578,
+        "rrp": 2.582,
+        "tga": 370507
+      },
+      {
+        "date": "2025-08-06",
+        "netLiquidityIndex": 29.51,
+        "walcl": 6640843,
+        "rrp": 4.582,
+        "tga": 421043
+      },
+      {
+        "date": "2025-08-13",
+        "netLiquidityIndex": 25.19,
+        "walcl": 6643615,
+        "rrp": 3.083,
+        "tga": 504304
+      },
+      {
+        "date": "2025-08-20",
+        "netLiquidityIndex": 23.76,
+        "walcl": 6618415,
+        "rrp": 3.28,
+        "tga": 519534
+      },
+      {
+        "date": "2025-08-27",
+        "netLiquidityIndex": 19.45,
+        "walcl": 6603384,
+        "rrp": 3.402,
+        "tga": 589998
+      },
+      {
+        "date": "2025-09-03",
+        "netLiquidityIndex": 19.02,
+        "walcl": 6602071,
+        "rrp": 3.277,
+        "tga": 597513
+      },
+      {
+        "date": "2025-09-10",
+        "netLiquidityIndex": 14.9,
+        "walcl": 6605962,
+        "rrp": 3.223,
+        "tga": 672274
+      },
+      {
+        "date": "2025-09-17",
+        "netLiquidityIndex": 10.46,
+        "walcl": 6608597,
+        "rrp": 2.003,
+        "tga": 756376
+      },
+      {
+        "date": "2025-09-24",
+        "netLiquidityIndex": 7.89,
+        "walcl": 6608395,
+        "rrp": 1.222,
+        "tga": 804856
+      },
+      {
+        "date": "2025-10-01",
+        "netLiquidityIndex": 6.95,
+        "walcl": 6587119,
+        "rrp": 3.506,
+        "tga": 805139
+      },
+      {
+        "date": "2025-10-08",
+        "netLiquidityIndex": 6.93,
+        "walcl": 6590815,
+        "rrp": 3.344,
+        "tga": 807428
+      },
+      {
+        "date": "2025-10-15",
+        "netLiquidityIndex": 7.2,
+        "walcl": 6596454,
+        "rrp": 2.058,
+        "tga": 809593
+      },
+      {
+        "date": "2025-10-22",
+        "netLiquidityIndex": 1.74,
+        "walcl": 6589533,
+        "rrp": 0.927,
+        "tga": 908001
+      },
+      {
+        "date": "2025-10-29",
+        "netLiquidityIndex": -1.25,
+        "walcl": 6587034,
+        "rrp": 1.489,
+        "tga": 957990
+      },
+      {
+        "date": "2025-11-05",
+        "netLiquidityIndex": -0.54,
+        "walcl": 6572732,
+        "rrp": 1.253,
+        "tga": 940979
+      },
+      {
+        "date": "2025-11-12",
+        "netLiquidityIndex": -1.07,
+        "walcl": 6580462,
+        "rrp": 1.103,
+        "tga": 953816
+      },
+      {
+        "date": "2025-11-19",
+        "netLiquidityIndex": -1.3,
+        "walcl": 6555283,
+        "rrp": 2.852,
+        "tga": 941926
+      },
+      {
+        "date": "2025-11-26",
+        "netLiquidityIndex": -0.61,
+        "walcl": 6552419,
+        "rrp": 9.629,
+        "tga": 903394
+      },
+      {
+        "date": "2025-12-03",
+        "netLiquidityIndex": -3.03,
+        "walcl": 6535781,
+        "rrp": 10.415,
+        "tga": 937167
+      },
+      {
+        "date": "2025-12-10",
+        "netLiquidityIndex": 3.28,
+        "walcl": 6539303,
+        "rrp": 1.785,
+        "tga": 858946
+      },
+      {
+        "date": "2025-12-17",
+        "netLiquidityIndex": 4.97,
+        "walcl": 6556861,
+        "rrp": 2.414,
+        "tga": 833093
+      },
+      {
+        "date": "2025-12-24",
+        "netLiquidityIndex": 5.39,
+        "walcl": 6581231,
+        "rrp": 1.748,
+        "tga": 837120
+      },
+      {
+        "date": "2025-12-31",
+        "netLiquidityIndex": 6.33,
+        "walcl": 6640618,
+        "rrp": 3.111,
+        "tga": 837306
+      },
+      {
+        "date": "2026-01-07",
+        "netLiquidityIndex": 7.64,
+        "walcl": 6573602,
+        "rrp": 1.306,
+        "tga": 796148
+      },
+      {
+        "date": "2026-01-14",
+        "netLiquidityIndex": 8.73,
+        "walcl": 6581700,
+        "rrp": 1.447,
+        "tga": 779175
+      },
+      {
+        "date": "2026-01-21",
+        "netLiquidityIndex": 3.8,
+        "walcl": 6584580,
+        "rrp": 1.048,
+        "tga": 869261
+      },
+      {
+        "date": "2026-01-28",
+        "netLiquidityIndex": 0.44,
+        "walcl": 6587568,
+        "rrp": 2.844,
+        "tga": 923042
+      },
+      {
+        "date": "2026-02-04",
+        "netLiquidityIndex": 2.15,
+        "walcl": 6605909,
+        "rrp": 0.377,
+        "tga": 908773
+      },
+      {
+        "date": "2026-02-11",
+        "netLiquidityIndex": 2.11,
+        "walcl": 6622382,
+        "rrp": 0.441,
+        "tga": 915306
+      }
+    ],
+    "regime": {
+      "liquidity": "Contracting",
+      "rates": "Easing",
+      "macroRisk": "Low",
+      "rationale": [
+        "Liquidity trend vs 30D: -7.15 index pts",
+        "10Y nominal trend vs 30D: -0.17%",
+        "10Y real trend vs 30D: -0.12%",
+        "DXY trend vs 30D: -1.26"
+      ]
+    },
+    "events": [
+      {
+        "id": "cpi",
+        "title": "CPI Release",
+        "date": "Mar 12, 2026",
+        "note": "Estimated calendar date"
+      },
+      {
+        "id": "nfp",
+        "title": "Nonfarm Payrolls",
+        "date": "Mar 6, 2026",
+        "note": "Estimated calendar date"
+      },
+      {
+        "id": "fomc",
+        "title": "FOMC Decision",
+        "date": "Mar 10, 2026",
+        "note": "Approx. 6-week cadence"
+      }
+    ],
+    "seriesStatus": {
+      "fedBalanceSheet": {
+        "ok": true
+      },
+      "reverseRepo": {
+        "ok": true
+      },
+      "treasuryGeneralAccount": {
+        "ok": true
+      },
+      "tenYearYield": {
+        "ok": true
+      },
+      "twoYearYield": {
+        "ok": true
+      },
+      "realTenYearYield": {
+        "ok": true
+      },
+      "dxyBroad": {
+        "ok": true
+      }
+    },
+    "okSeriesCount": 7,
+    "totalSeriesCount": 7,
+    "generatedAt": "2026-02-18T01:41:57.604Z",
+    "cacheState": "fresh"
+  }
+}

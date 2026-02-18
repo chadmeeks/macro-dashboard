@@ -1,0 +1,323 @@
+:root {
+  --bg: #f5f8ff;
+  --surface: #ffffff;
+  --text: #202124;
+  --muted: #5f6368;
+  --border: #e8eaed;
+  --primary: #1a73e8;
+  --green: #188038;
+  --red: #c5221f;
+  --amber: #b06000;
+  --shadow: 0 1px 2px rgba(60, 64, 67, 0.16), 0 1px 3px 1px rgba(60, 64, 67, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  font-family: "Roboto", sans-serif;
+  background:
+    radial-gradient(circle at 8% -8%, rgba(26, 115, 232, 0.16), transparent 34%),
+    radial-gradient(circle at 92% 2%, rgba(52, 168, 83, 0.12), transparent 32%),
+    var(--bg);
+}
+
+.topbar {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 24px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--primary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+h1 {
+  margin: 6px 0 4px;
+  font-family: "Google Sans", "Roboto", sans-serif;
+  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.subhead {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+}
+
+.button,
+select {
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 12px;
+  font: inherit;
+  color: var(--text);
+}
+
+.button {
+  cursor: pointer;
+  padding: 10px 14px;
+  color: var(--primary);
+  border-color: #d2e3fc;
+  font-weight: 500;
+}
+
+.range-select {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.range-select select {
+  padding: 10px 12px;
+}
+
+.layout {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 14px 24px 30px;
+  display: grid;
+  grid-template-columns: 320px 1fr 340px;
+  grid-template-areas:
+    "spot price rates"
+    "liq liq regime"
+    "events events regime";
+  gap: 14px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+.btc-spot { grid-area: spot; }
+.chart-card { grid-area: price; }
+.rates-card { grid-area: rates; }
+.liquidity-card { grid-area: liq; }
+.regime-card { grid-area: regime; }
+.events-card { grid-area: events; }
+
+.label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.price {
+  margin: 12px 0 8px;
+  font-family: "Google Sans", "Roboto", sans-serif;
+  font-size: clamp(34px, 4vw, 48px);
+  font-weight: 700;
+}
+
+.meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.meta.positive { color: var(--green); }
+.meta.negative { color: var(--red); }
+.meta.tiny { font-size: 12px; }
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.chart-wrap {
+  height: 325px;
+  margin-top: 12px;
+}
+
+.chart-wrap.compact {
+  height: 240px;
+}
+
+.chip-row,
+.pill-row,
+.events-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  border-radius: 999px;
+  border: 1px solid #d2e3fc;
+  background: #e8f0fe;
+  color: #174ea6;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 10px;
+}
+
+.chip.positive {
+  color: #0d652d;
+  background: #e6f4ea;
+  border-color: #b7dfc1;
+}
+
+.chip.negative {
+  color: #a50e0e;
+  background: #fce8e6;
+  border-color: #f3c3bf;
+}
+
+.metric-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.metric {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px;
+  background: #fbfcff;
+}
+
+.metric .name {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.metric .value {
+  margin: 6px 0 2px;
+  font-family: "Google Sans", "Roboto", sans-serif;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.metric .date {
+  margin: 0;
+  color: #80868b;
+  font-size: 11px;
+}
+
+.pill {
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background: #f8f9fa;
+}
+
+.pill.ok {
+  color: #0d652d;
+  border-color: #b7dfc1;
+  background: #e6f4ea;
+}
+
+.pill.warn {
+  color: #a15c00;
+  border-color: #f5c98d;
+  background: #fef7e0;
+}
+
+.pill.risk {
+  color: #a50e0e;
+  border-color: #f3c3bf;
+  background: #fce8e6;
+}
+
+.rationale {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: #3c4043;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.event {
+  min-width: 180px;
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 14px;
+  padding: 10px;
+}
+
+.event .title {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.event .date {
+  margin: 6px 0 2px;
+  font-family: "Google Sans", "Roboto", sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.event .note {
+  margin: 0;
+  font-size: 11px;
+  color: #80868b;
+}
+
+@media (max-width: 1160px) {
+  .layout {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "spot rates"
+      "price price"
+      "liq regime"
+      "events events";
+  }
+}
+
+@media (max-width: 840px) {
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "spot"
+      "price"
+      "rates"
+      "liq"
+      "regime"
+      "events";
+  }
+
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+}
