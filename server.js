@@ -606,6 +606,24 @@ function buildMonthTimeline(startMonth, endMonth) {
   return out;
 }
 
+function toPriceRowsFromDaily(daily) {
+  return (daily || [])
+    .filter(item => item?.date && Number.isFinite(Number(item.value)))
+    .map(point => [new Date(`${point.date}T00:00:00Z`).getTime(), Number(point.value)]);
+}
+
+function slicePriceRowsByDays(prices, days) {
+  if (!Array.isArray(prices) || !prices.length) return [];
+  if (days === "max") return prices;
+
+  const daysInt = Number(days);
+  if (!Number.isFinite(daysInt) || daysInt <= 0) return prices;
+
+  const endTs = prices[prices.length - 1][0];
+  const startTs = endTs - (daysInt * 24 * 60 * 60 * 1000);
+  return prices.filter(([ts]) => ts >= startTs);
+}
+
 function readMacroCache() {
   try {
     ensureDataDir();
@@ -843,7 +861,26 @@ async function handleBtcCurrent(_url, res) {
     const data = await fetchJson(url, 10000);
     sendJson(res, 200, { bitcoin: data.bitcoin || null });
   } catch (error) {
-    sendJson(res, 500, { error: error.message || "Failed to fetch current BTC price" });
+    try {
+      const daily = await fetchBtcDailySeries();
+      const latestRow = daily[daily.length - 1];
+      const prevRow = daily[daily.length - 2];
+      const latest = Number(latestRow?.value);
+      const prev = Number(prevRow?.value);
+      const change = Number.isFinite(latest) && Number.isFinite(prev) && prev !== 0
+        ? ((latest - prev) / prev) * 100
+        : null;
+      sendJson(res, 200, {
+        bitcoin: {
+          usd: Number.isFinite(latest) ? latest : null,
+          usd_24h_change: Number.isFinite(change) ? Number(change.toFixed(4)) : null,
+          last_updated_at: latestRow?.date ? Math.floor(new Date(`${latestRow.date}T00:00:00Z`).getTime() / 1000) : null
+        },
+        source: "fallback-merged-series"
+      });
+    } catch (fallbackError) {
+      sendJson(res, 500, { error: fallbackError.message || error.message || "Failed to fetch current BTC price" });
+    }
   }
 }
 
@@ -851,12 +888,26 @@ async function handleBtcHistory(url, res) {
   const days = String(url.searchParams.get("days") || "30");
 
   try {
-    const historyUrl = new URL("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart");
-    historyUrl.searchParams.set("vs_currency", "usd");
-    historyUrl.searchParams.set("days", days);
+    const shouldUseLocal = days === "max";
+    if (shouldUseLocal) {
+      const daily = await fetchBtcDailySeries();
+      const prices = slicePriceRowsByDays(toPriceRowsFromDaily(daily), days);
+      sendJson(res, 200, { prices, source: "merged-series" });
+      return;
+    }
 
-    const data = await fetchJson(historyUrl, 12000);
-    sendJson(res, 200, { prices: data.prices || [] });
+    try {
+      const historyUrl = new URL("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart");
+      historyUrl.searchParams.set("vs_currency", "usd");
+      historyUrl.searchParams.set("days", days);
+
+      const data = await fetchJson(historyUrl, 12000);
+      sendJson(res, 200, { prices: data.prices || [], source: "coingecko" });
+    } catch {
+      const daily = await fetchBtcDailySeries();
+      const prices = slicePriceRowsByDays(toPriceRowsFromDaily(daily), days);
+      sendJson(res, 200, { prices, source: "fallback-merged-series" });
+    }
   } catch (error) {
     sendJson(res, 500, { error: error.message || "Failed to fetch BTC history" });
   }
@@ -864,12 +915,17 @@ async function handleBtcHistory(url, res) {
 
 async function handleBtcReturns(_url, res) {
   try {
-    const historyUrl = new URL("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart");
-    historyUrl.searchParams.set("vs_currency", "usd");
-    historyUrl.searchParams.set("days", "730");
-
-    const data = await fetchJson(historyUrl, 12000);
-    const prices = data.prices || [];
+    let prices = [];
+    try {
+      const historyUrl = new URL("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart");
+      historyUrl.searchParams.set("vs_currency", "usd");
+      historyUrl.searchParams.set("days", "730");
+      const data = await fetchJson(historyUrl, 12000);
+      prices = data.prices || [];
+    } catch {
+      const daily = await fetchBtcDailySeries();
+      prices = slicePriceRowsByDays(toPriceRowsFromDaily(daily), "730");
+    }
 
     sendJson(res, 200, {
       returns: {
