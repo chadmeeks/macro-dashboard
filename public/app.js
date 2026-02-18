@@ -10,10 +10,12 @@ const fearGreedClassEl = document.getElementById("fearGreedClass");
 const fearGreedMetaEl = document.getElementById("fearGreedMeta");
 const fearGreedBarEl = document.getElementById("fearGreedBar");
 const m2BtcMetaEl = document.getElementById("m2BtcMeta");
+const planbMetaEl = document.getElementById("planbMeta");
 
 const priceChartCanvas = document.getElementById("priceChart");
 const liquidityChartCanvas = document.getElementById("liquidityChart");
 const m2BtcChartCanvas = document.getElementById("m2BtcChart");
+const planbChartCanvas = document.getElementById("planbChart");
 
 const liquidityMetricsEl = document.getElementById("liquidityMetrics");
 const ratesMetricsEl = document.getElementById("ratesMetrics");
@@ -32,6 +34,7 @@ const calendarUpcoming = document.getElementById("calendarUpcoming");
 let priceChart;
 let liquidityChart;
 let m2BtcChart;
+let planbChart;
 let calendarEvents = [];
 let calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
@@ -261,6 +264,131 @@ function renderM2BtcChart(points) {
   }
 }
 
+function renderPlanBChart(payload) {
+  if (planbChart) { planbChart.destroy(); planbChart = null; }
+
+  const monthlyPoints = Array.isArray(payload?.monthlyPoints) ? payload.monthlyPoints : [];
+  const ma200wSeries = Array.isArray(payload?.ma200wSeries) ? payload.ma200wSeries : [];
+  const s2fSeries = Array.isArray(payload?.s2fSeries) ? payload.s2fSeries : [];
+
+  if (!monthlyPoints.length) {
+    if (planbMetaEl) planbMetaEl.textContent = "PlanB model unavailable";
+    return;
+  }
+
+  const labels = monthlyPoints.map(item => item.date);
+  const maByDate = new Map(ma200wSeries.map(item => [item.date, Number(item.value)]));
+  const s2fByDate = new Map(s2fSeries.map(item => [item.date, Number(item.value)]));
+
+  const dotData = monthlyPoints.map(item => {
+    const v = Number(item.price);
+    return Number.isFinite(v) ? v : null;
+  });
+  const dotColors = monthlyPoints.map(item => item.rsiColor || "#8aa0c4");
+  const maData = labels.map(date => {
+    const v = maByDate.get(date);
+    return Number.isFinite(v) ? v : null;
+  });
+  const s2fData = labels.map(date => {
+    const v = s2fByDate.get(date);
+    return Number.isFinite(v) ? v : null;
+  });
+
+  planbChart = new Chart(planbChartCanvas, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "200W MA",
+          data: maData,
+          borderColor: "#111111",
+          borderWidth: 3.2,
+          pointRadius: 0,
+          tension: 0.05
+        },
+        {
+          label: "S2F Model",
+          data: s2fData,
+          borderColor: "#2d2d2d",
+          borderDash: [2, 6],
+          borderWidth: 2.2,
+          pointRadius: 0,
+          tension: 0,
+          stepped: true
+        },
+        {
+          label: "BTC (RSI color)",
+          data: dotData,
+          showLine: false,
+          pointRadius: 4.8,
+          pointHoverRadius: 6,
+          pointBackgroundColor: dotColors,
+          pointBorderWidth: 0
+        }
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "top",
+          labels: { boxWidth: 12, boxHeight: 12 }
+        },
+        tooltip: {
+          callbacks: {
+            label(context) {
+              const idx = context.dataIndex;
+              const date = labels[idx];
+              const row = monthlyPoints[idx] || {};
+              if (context.datasetIndex === 2) {
+                const rsi = Number.isFinite(Number(row.rsi14m)) ? Number(row.rsi14m).toFixed(1) : "N/A";
+                const price = Number(row.price);
+                const priceLabel = Number.isFinite(price) ? formatUsd(price) : "N/A";
+                return `BTC: ${priceLabel} · RSI14m ${rsi}`;
+              }
+              if (context.datasetIndex === 1) {
+                const v = Number(s2fData[idx]);
+                return `S2F: ${Number.isFinite(v) ? formatUsd(v) : "N/A"}`;
+              }
+              const v = Number(maData[idx]);
+              return `200W MA: ${Number.isFinite(v) ? formatUsd(v) : "N/A"} (${date})`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            maxTicksLimit: 12,
+            callback(_value, idx) {
+              const iso = labels[idx];
+              const d = new Date(`${iso}T00:00:00Z`);
+              return Number.isNaN(d.getTime())
+                ? iso
+                : d.toLocaleDateString("en-US", { year: "2-digit", month: "short" });
+            }
+          }
+        },
+        y: {
+          type: "logarithmic",
+          min: 1,
+          max: 1000000,
+          grid: { color: "rgba(95, 99, 104, 0.14)" },
+          ticks: { callback: value => formatUsd(value) }
+        }
+      }
+    }
+  });
+
+  if (planbMetaEl) {
+    const start = monthlyPoints[0]?.date;
+    const end = monthlyPoints[monthlyPoints.length - 1]?.date;
+    planbMetaEl.textContent = `Monthly model view · ${formatDate(start)} to ${formatDate(end)} · Realized price deferred`;
+  }
+}
+
 function metricHtml({ name, value, date }) {
   return `<article class="metric"><p class="name">${name}</p><p class="value">${value ?? "N/A"}</p><p class="date">${date ? `As of ${formatDate(date)}` : ""}</p></article>`;
 }
@@ -404,13 +532,14 @@ async function loadDashboard() {
   refreshBtn.textContent = "Refreshing...";
 
   const macroPromise = api("/api/macro/v1", 14000);
-  const [currentRes, historyRes, returnsRes, fearGreedRes, calendarRes, m2BtcRes] = await Promise.allSettled([
+  const [currentRes, historyRes, returnsRes, fearGreedRes, calendarRes, m2BtcRes, planbRes] = await Promise.allSettled([
     api("/api/btc/current", 9000),
     api(`/api/btc/history?days=${encodeURIComponent(rangeSelect.value)}`, 11000),
     api("/api/btc/returns", 11000),
     api("/api/bitcoin/fear-greed", 9000),
     api("/api/calendar", 12000),
-    api("/api/bitcoin/m2-vs-btc", 12000)
+    api("/api/bitcoin/m2-vs-btc", 12000),
+    api("/api/bitcoin/planb-model", 14000)
   ]);
 
   const currentPayload = currentRes.status === "fulfilled" ? currentRes.value : null;
@@ -433,6 +562,8 @@ async function loadDashboard() {
 
   const m2BtcPayload = m2BtcRes.status === "fulfilled" ? m2BtcRes.value : null;
   renderM2BtcChart(m2BtcPayload?.points || []);
+  const planbPayload = planbRes.status === "fulfilled" ? planbRes.value : null;
+  renderPlanBChart(planbPayload);
 
 
   if (calendarRes.status === "fulfilled") {

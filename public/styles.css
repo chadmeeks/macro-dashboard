@@ -120,13 +120,15 @@ select {
   grid-template-areas:
     "spot chart"
     "fear chart"
-    "m2 m2";
+    "m2 m2"
+    "planb planb";
 }
 
 .btc-spot { grid-area: spot; }
 .fear-card { grid-area: fear; }
 .chart-card { grid-area: chart; }
 .m2-card { grid-area: m2; }
+.planb-card { grid-area: planb; }
 
 .macro-layout {
   grid-template-columns: 1fr 340px;
@@ -186,6 +188,7 @@ select {
 
 .chart-wrap { height: 325px; margin-top: 12px; }
 .chart-wrap.compact { height: 240px; }
+.chart-wrap.tall { height: 430px; }
 
 .chip-row,
 .pill-row { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -359,3 +362,27 @@ select {
 .meta.fg-fear { color: #c5221f; }
 .meta.fg-neutral { color: #b06000; }
 .meta.fg-greed { color: #188038; }
+
+.planb-foot {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rsi-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.rsi-bar {
+  width: 180px;
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid #d0d6e0;
+  background: linear-gradient(90deg, #1c4fff 0%, #31b9ff 20%, #63ec6b 50%, #f1ea3d 75%, #ef3d2f 100%);
+}

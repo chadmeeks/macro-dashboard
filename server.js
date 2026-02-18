@@ -325,6 +325,10 @@ function calcYtdReturn(points) {
   return ((end - start) / start) * 100;
 }
 
+function parseIsoDate(iso) {
+  return new Date(`${iso}T00:00:00Z`);
+}
+
 function dayFromTs(ts) {
   return new Date(ts).toISOString().slice(0, 10);
 }
@@ -380,6 +384,226 @@ function alignSeriesToDates(points, isoDates) {
   }
 
   return aligned;
+}
+
+function dedupeByDate(points) {
+  const map = new Map();
+  for (const point of points || []) {
+    if (!point?.date || !Number.isFinite(Number(point.value))) continue;
+    map.set(point.date, Number(point.value));
+  }
+  return Array.from(map.entries())
+    .map(([date, value]) => ({ date, value }))
+    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+}
+
+async function fetchBtcDailySeries() {
+  const sources = [];
+
+  try {
+    const fredRows = FRED_API_KEY
+      ? await fetchFredSeries("CBBTCUSD")
+      : await fetchFredSeriesCsvFallback("CBBTCUSD");
+    if (Array.isArray(fredRows) && fredRows.length) sources.push(...fredRows);
+  } catch {}
+
+  try {
+    const historyUrl = new URL("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart");
+    historyUrl.searchParams.set("vs_currency", "usd");
+    historyUrl.searchParams.set("days", "max");
+    const payload = await fetchJson(historyUrl, 14000);
+    const rows = (payload?.prices || [])
+      .map(([ts, value]) => ({ date: dayFromTs(ts), value: Number(value) }))
+      .filter(item => item.date && Number.isFinite(item.value));
+    if (rows.length) sources.push(...rows);
+  } catch {}
+
+  try {
+    const chainUrl = new URL("https://api.blockchain.info/charts/market-price");
+    chainUrl.searchParams.set("timespan", "all");
+    chainUrl.searchParams.set("format", "json");
+    chainUrl.searchParams.set("sampled", "false");
+    const payload = await fetchJson(chainUrl, 14000);
+    const rows = (payload?.values || [])
+      .map(item => ({
+        date: dayFromTs(Number(item?.x || 0) * 1000),
+        value: Number(item?.y)
+      }))
+      .filter(item => item.date && Number.isFinite(item.value));
+    if (rows.length) sources.push(...rows);
+  } catch {}
+
+  if (!sources.length) {
+    throw new Error("Missing BTC daily history from all sources");
+  }
+
+  const merged = dedupeByDate(sources);
+  // Ensure deterministic long-history floor for downstream charts.
+  const floor = "2011-01-01";
+  if (!merged.some(row => row.date <= floor)) {
+    throw new Error("BTC history available but missing pre-2011 coverage");
+  }
+  return merged;
+}
+
+function computeMonthlyCloses(dailySeries) {
+  const byMonth = new Map();
+  for (const point of dailySeries) {
+    const month = point.date.slice(0, 7);
+    byMonth.set(month, point);
+  }
+  return Array.from(byMonth.values()).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+}
+
+function computeRsi(values, period = 14) {
+  if (!Array.isArray(values) || values.length < period + 1) return values.map(() => null);
+
+  const output = new Array(values.length).fill(null);
+  let gainSum = 0;
+  let lossSum = 0;
+
+  for (let i = 1; i <= period; i += 1) {
+    const delta = values[i] - values[i - 1];
+    if (delta >= 0) gainSum += delta;
+    else lossSum += Math.abs(delta);
+  }
+
+  let avgGain = gainSum / period;
+  let avgLoss = lossSum / period;
+  output[period] = avgLoss === 0 ? 100 : 100 - (100 / (1 + (avgGain / avgLoss)));
+
+  for (let i = period + 1; i < values.length; i += 1) {
+    const delta = values[i] - values[i - 1];
+    const gain = delta > 0 ? delta : 0;
+    const loss = delta < 0 ? Math.abs(delta) : 0;
+    avgGain = ((avgGain * (period - 1)) + gain) / period;
+    avgLoss = ((avgLoss * (period - 1)) + loss) / period;
+    output[i] = avgLoss === 0 ? 100 : 100 - (100 / (1 + (avgGain / avgLoss)));
+  }
+
+  return output.map(value => (Number.isFinite(value) ? Number(value.toFixed(2)) : null));
+}
+
+function computeRollingSma(values, windowSize) {
+  const output = new Array(values.length).fill(null);
+  if (!Array.isArray(values) || values.length < windowSize || windowSize <= 0) return output;
+
+  let sum = 0;
+  for (let i = 0; i < values.length; i += 1) {
+    sum += values[i];
+    if (i >= windowSize) sum -= values[i - windowSize];
+    if (i >= windowSize - 1) output[i] = sum / windowSize;
+  }
+  return output;
+}
+
+function buildDailyValueMap(dailySeries) {
+  const map = new Map();
+  for (const point of dailySeries) {
+    map.set(point.date, Number(point.value));
+  }
+  return map;
+}
+
+function fillMonthlyFromDaily(monthlyDates, dailyMap) {
+  const knownDates = Array.from(dailyMap.keys()).sort();
+  const output = [];
+  let idx = 0;
+  let last = null;
+  for (const date of monthlyDates) {
+    while (idx < knownDates.length && knownDates[idx] <= date) {
+      last = dailyMap.get(knownDates[idx]);
+      idx += 1;
+    }
+    output.push(last);
+  }
+  return output;
+}
+
+const HALVING_EPOCHS = [
+  { start: "2009-01-03", end: "2012-11-28", reward: 50 },
+  { start: "2012-11-28", end: "2016-07-09", reward: 25 },
+  { start: "2016-07-09", end: "2020-05-11", reward: 12.5 },
+  { start: "2020-05-11", end: "2024-04-20", reward: 6.25 },
+  { start: "2024-04-20", end: "2028-04-20", reward: 3.125 },
+  { start: "2028-04-20", end: "2032-04-20", reward: 1.5625 }
+];
+
+function daysBetweenIso(startIso, endIso) {
+  return Math.max(0, Math.floor((parseIsoDate(endIso) - parseIsoDate(startIso)) / (24 * 60 * 60 * 1000)));
+}
+
+function estimatedStockAt(isoDate) {
+  const target = parseIsoDate(isoDate);
+  let stock = 0;
+  for (const epoch of HALVING_EPOCHS) {
+    const epochStart = parseIsoDate(epoch.start);
+    const epochEnd = parseIsoDate(epoch.end);
+    if (target <= epochStart) break;
+    const segmentEnd = target < epochEnd ? target : epochEnd;
+    const days = Math.max(0, Math.floor((segmentEnd - epochStart) / (24 * 60 * 60 * 1000)));
+    stock += days * 144 * epoch.reward;
+    if (target < epochEnd) break;
+  }
+  return stock;
+}
+
+function epochForDate(isoDate) {
+  for (const epoch of HALVING_EPOCHS) {
+    if (isoDate >= epoch.start && isoDate < epoch.end) return epoch;
+  }
+  return HALVING_EPOCHS[HALVING_EPOCHS.length - 1];
+}
+
+function computeS2FSeries(monthlyDates) {
+  const a = -2.68;
+  const b = 3.3;
+  return monthlyDates.map(date => {
+    const epoch = epochForDate(date);
+    const annualFlow = epoch.reward * 144 * 365;
+    const stock = estimatedStockAt(date);
+    const sf = annualFlow > 0 ? stock / annualFlow : null;
+    const modelPrice = Number.isFinite(sf) && sf > 0
+      ? Math.exp(a + (b * Math.log(sf)))
+      : null;
+    return {
+      date,
+      value: Number.isFinite(modelPrice) ? Number(modelPrice.toFixed(2)) : null,
+      epoch: `${epoch.start}..${epoch.end}`
+    };
+  });
+}
+
+function rsiToColor(rsi) {
+  if (!Number.isFinite(rsi)) return "#8aa0c4";
+  const min = 45;
+  const max = 85;
+  const clamped = Math.max(min, Math.min(max, rsi));
+  const t = (clamped - min) / (max - min);
+  const hue = 220 - (210 * t);
+  return `hsl(${hue.toFixed(0)} 88% 56%)`;
+}
+
+function monthKey(isoDate) {
+  return String(isoDate || "").slice(0, 7);
+}
+
+function buildMonthTimeline(startMonth, endMonth) {
+  const [startY, startM] = startMonth.split("-").map(Number);
+  const [endY, endM] = endMonth.split("-").map(Number);
+  const out = [];
+
+  let y = startY;
+  let m = startM;
+  while (y < endY || (y === endY && m <= endM)) {
+    out.push(`${y}-${String(m).padStart(2, "0")}-01`);
+    m += 1;
+    if (m > 12) {
+      m = 1;
+      y += 1;
+    }
+  }
+  return out;
 }
 
 function readMacroCache() {
@@ -745,6 +969,72 @@ async function handleM2VsBtc(_url, res) {
   }
 }
 
+async function handlePlanBModel(_url, res) {
+  try {
+    const btcDaily = await fetchBtcDailySeries();
+    if (!btcDaily.length) {
+      sendJson(res, 500, { error: "Missing BTC history for model" });
+      return;
+    }
+
+    const monthly = computeMonthlyCloses(btcDaily);
+    const monthlyDatesRaw = monthly.map(item => item.date);
+    const monthlyPrices = monthly.map(item => item.value);
+    const monthlyRsi = computeRsi(monthlyPrices, 14);
+    const timeline = buildMonthTimeline("2011-01", "2027-12");
+
+    const dailySma1400 = computeRollingSma(btcDaily.map(item => item.value), 1400);
+    const dailySmaSeries = btcDaily
+      .map((item, i) => ({ date: item.date, value: dailySma1400[i] }))
+      .filter(item => Number.isFinite(item.value));
+    const maAligned = fillMonthlyFromDaily(timeline, buildDailyValueMap(dailySmaSeries));
+    const s2fSeries = computeS2FSeries(timeline);
+
+    const priceByMonth = new Map(monthly.map(item => [monthKey(item.date), Number(item.value)]));
+    const rsiByMonth = new Map(monthlyDatesRaw.map((date, idx) => [monthKey(date), monthlyRsi[idx]]));
+
+    const points = timeline.map(date => {
+      const k = monthKey(date);
+      const price = priceByMonth.get(k);
+      const rsi = rsiByMonth.get(k);
+      return {
+        date,
+        price: Number.isFinite(price) ? Number(price.toFixed(2)) : null,
+        rsi14m: Number.isFinite(rsi) ? Number(rsi.toFixed(2)) : null,
+        rsiColor: rsiToColor(rsi)
+      };
+    });
+
+    const ma200wSeries = timeline
+      .map((date, idx) => ({
+        date,
+        value: Number.isFinite(maAligned[idx]) ? Number(maAligned[idx].toFixed(2)) : null
+      }))
+      .filter(item => Number.isFinite(item.value));
+
+    const s2fClean = s2fSeries.filter(item => Number.isFinite(item.value));
+
+    sendJson(res, 200, {
+      monthlyPoints: points,
+      ma200wSeries,
+      s2fSeries: s2fClean,
+      meta: {
+        formulaVersion: "s2f-log-v1",
+        coefficients: { a: -2.68, b: 3.3 },
+        includesRealizedPrice: false,
+        note: "Realized price deferred to a future version",
+        btcDataRange: {
+          firstDate: btcDaily[0]?.date || null,
+          lastDate: btcDaily[btcDaily.length - 1]?.date || null
+        },
+        updatedAt: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    sendJson(res, 500, { error: error.message || "Failed to build PlanB model" });
+  }
+}
+
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || `localhost:${PORT}`}`);
@@ -774,6 +1064,10 @@ const server = http.createServer(async (req, res) => {
 
   if (url.pathname === "/api/bitcoin/m2-vs-btc") {
     return handleM2VsBtc(url, res);
+  }
+
+  if (url.pathname === "/api/bitcoin/planb-model") {
+    return handlePlanBModel(url, res);
   }
 
   if (url.pathname === "/api/macro/v1") {
