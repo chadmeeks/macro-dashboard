@@ -1,609 +1,175 @@
-const btcPriceEl = document.getElementById("btcPrice");
-const priceMetaEl = document.getElementById("priceMeta");
-const returnsRowEl = document.getElementById("returnsRow");
-const refreshBtn = document.getElementById("refreshBtn");
-const rangeSelect = document.getElementById("rangeSelect");
-const btcRangeControl = document.getElementById("btcRangeControl");
-const liquidityMetaEl = document.getElementById("liquidityMeta");
-const fearGreedValueEl = document.getElementById("fearGreedValue");
-const fearGreedClassEl = document.getElementById("fearGreedClass");
-const fearGreedMetaEl = document.getElementById("fearGreedMeta");
-const fearGreedBarEl = document.getElementById("fearGreedBar");
-const m2BtcMetaEl = document.getElementById("m2BtcMeta");
-const planbMetaEl = document.getElementById("planbMeta");
-
-const priceChartCanvas = document.getElementById("priceChart");
-const liquidityChartCanvas = document.getElementById("liquidityChart");
-const m2BtcChartCanvas = document.getElementById("m2BtcChart");
-const planbChartCanvas = document.getElementById("planbChart");
-
-const liquidityMetricsEl = document.getElementById("liquidityMetrics");
-const ratesMetricsEl = document.getElementById("ratesMetrics");
-const regimePillsEl = document.getElementById("regimePills");
-const regimeRationaleEl = document.getElementById("regimeRationale");
-
-const tabs = document.querySelectorAll(".tab");
-const panels = document.querySelectorAll(".tab-panel");
-
-const calPrevBtn = document.getElementById("calPrevBtn");
-const calNextBtn = document.getElementById("calNextBtn");
-const calendarMonthLabel = document.getElementById("calendarMonthLabel");
-const calendarGrid = document.getElementById("calendarGrid");
-const calendarUpcoming = document.getElementById("calendarUpcoming");
-
-let priceChart;
-let liquidityChart;
-let m2BtcChart;
-let planbChart;
-let calendarEvents = [];
-let calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-
-function formatUsd(value, digits = 0) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: digits
-  }).format(value);
+'use strict';
+const $=id=>document.getElementById(id);
+const state={view:'overview',feeds:{},period:365,log:false,macroMetric:'liquidity',search:'',allCompanies:false,busy:false};
+const FEEDS=['spot','bitcoin','sentiment','adoption','macro','calendar'];
+const PAGES={overview:['THE DAILY PICTURE','A little perspective.','Bitcoin, capital flows, and the forces around them.'],bitcoin:['PRICE, TREND & NETWORK','Understand the asset.','Market structure and the network behind it, in one place.'],adoption:['OWNERSHIP & CAPITAL','Follow the commitment.','Track reported corporate ownership and explore institutional demand.'],macro:['LIQUIDITY, RATES & THE ECONOMY','The bigger picture.','The monetary and economic conditions surrounding Bitcoin.'],sources:['TRANSPARENCY BY DESIGN','Know what you’re reading.','Source health, observation dates, and the assumptions behind each indicator.']};
+const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const valid=value=>typeof value==='number'&&Number.isFinite(value);
+const num=(value,digits=0)=>valid(value)?new Intl.NumberFormat('en-US',{maximumFractionDigits:digits,minimumFractionDigits:digits}).format(value):'—';
+const money=(value,digits=0)=>valid(value)?`$${num(value,digits)}`:'—';
+const percent=(value,digits=1,sign=false)=>valid(value)?`${sign&&value>0?'+':''}${num(value,digits)}%`:'—';
+const delta=(value,suffix='',digits=1)=>valid(value)?`${value>0?'+':''}${num(value,digits)}${suffix}`:'—';
+const compact=value=>valid(value)?new Intl.NumberFormat('en-US',{notation:'compact',maximumFractionDigits:1}).format(value):'—';
+const date=value=>value?new Date(value.length===10?`${value}T12:00:00Z`:value).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}):'Date not supplied';
+const tone=value=>!valid(value)?'neutral':value>=0?'positive':'negative';
+const fresh=key=>state.feeds[key]?.status==='current';
+const data=key=>state.feeds[key]?.data;
+function badge(status){return `<span class="badge ${status==='current'?'good':status==='stale'?'warn':'quiet'}">${status==='current'?'Current':status==='stale'?'Stale':status==='unavailable'?'Unavailable':'Loading'}</span>`;}
+function empty(key,label='Data unavailable') {return !state.feeds[key]?'<div class="empty">Connecting to source…<div class="loading-bar" style="width:150px"></div></div>':`<div class="empty">${label}<span>The source did not return usable data. Refresh to retry; other sections remain available.</span></div>`;}
+function source(key,extra='') {
+ const f=state.feeds[key],d=f?.data;if(!d)return `<div class="source-line">${f?'Source unavailable':'Loading source…'}</div>`;
+ const when=d.asOf?`${d.timestampKind==='retrieved'?'Fetched':'As of'} ${date(d.asOf)}${d.asOf.includes('T')?' · '+new Date(d.asOf).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):''}`:`Fetched ${date(f.retrievedAt)} · reporting dates unavailable`;
+ return `<div class="source-line"><a href="${esc(d.url)}" target="_blank" rel="noreferrer">${esc(d.source)} ↗</a> · ${when}${f.status==='stale'?' · <strong>STALE — may not reflect current conditions</strong>':''}${extra?` · ${esc(extra)}`:''}</div>`;
 }
-
-function formatBillions(value) {
-  if (!Number.isFinite(Number(value))) return "N/A";
-  return `${Number(value).toFixed(0)}B`;
+function spark(points,color='#889e77') {
+ const values=(points||[]).slice(-35).map(p=>p.value).filter(valid);if(values.length<2)return '';
+ const min=Math.min(...values),span=Math.max(...values)-min||1;
+ const d=values.map((v,i)=>`${i?'L':'M'}${(i/(values.length-1)*80).toFixed(1)},${(22-(v-min)/span*20).toFixed(1)}`).join(' ');
+ return `<svg class="spark" viewBox="0 0 80 24" aria-hidden="true"><path d="${d}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
 }
-
-function formatMillions(value) {
-  if (!Number.isFinite(Number(value))) return "N/A";
-  return `${Number(value).toFixed(0)}M`;
+function stat(title,value,note,bottom,series=[],symbol='↗',textual=false) {return `<article class="card"><div class="metric-top"><p class="kicker">${title}</p><span class="metric-symbol" aria-hidden="true">${symbol}</span></div><p class="stat-value ${textual?'textual':''}">${value}</p><p class="stat-note">${note}</p><div class="stat-bottom"><span>${bottom}</span>${spark(series)}</div></article>`;}
+function section(title,link,label){return `<div class="section-label"><h2>${title}</h2>${link?`<a href="#${link}">${label||'Explore'} ↗</a>`:''}</div>`;}
+function signal(label,value,detail='',className=''){return `<div class="signal-row"><div>${label}${detail?`<small>${detail}</small>`:''}</div><strong class="right ${className}">${value}</strong></div>`;}
+function trend(b){return !b||!valid(b.ma200)||!valid(b.ma50)?'Awaiting data':b.close>b.ma200?(b.close>b.ma50?'Above key averages':'Mixed trend'):(b.close<b.ma50?'Below key averages':'Mixed trend');}
+function topStats() {
+ const b=data('bitcoin'),s=data('sentiment'),a=data('adoption'),m=data('macro')?.metrics?.liquidity;
+ return `<div class="grid grid-four">${stat('Bitcoin trend',trend(b),b?`<span class="${tone(b.returns.day30)}">${percent(b.returns.day30,1,true)}</span> over 30 days · daily closes`:'Waiting for daily price history',b?`${fresh('bitcoin')?'As of':'Stale ·'} ${date(b.asOf)}`:'Daily close',b?.history,'₿',true)}${stat('Market sentiment',s?num(s.value)+'<span style="font-size:14px;color:var(--muted)"> / 100</span>':'—',s?`${esc(s.classification)} · ${delta(s.change7,' pts',0)} in 7 days`:'Fear & Greed Index',s?`${fresh('sentiment')?'As of':'Stale ·'} ${date(s.asOf)}`:'Daily reading',s?.history,'◌')}${stat('Dollar liquidity',m?money(m.value/1000,2)+'T':'—',m?`${delta(m.change30,'B')} USD over 4 weeks`:'Fed assets less Treasury cash and RRP',m?.asOf?`${m.status==='current'?'As of':'Stale ·'} ${date(m.asOf)}`:'Weekly proxy',m?.history,'⌁')}${stat('Corporate ownership',a?compact(a.total)+' BTC':'—',a?`${num(a.companies.length)} reported holders · ${percent(a.maxSupplyShare,2)} of 21M supply`:'Reported public-company holdings',a?`${fresh('adoption')?'Provider snapshot':'Stale snapshot'} · dates unknown`:'Ownership, not purchase flows',[],'◈')}</div>`;
 }
-
-function formatPercent(value, digits = 2) {
-  if (!Number.isFinite(value)) return "N/A";
-  const sign = value >= 0 ? "+" : "";
-  return `${sign}${value.toFixed(digits)}%`;
+function priceCard(detail=false) {
+ const b=data('bitcoin'),spot=data('spot');
+ return `<article class="card chart-card"><div class="card-head"><div><p class="kicker">BITCOIN / US DOLLAR</p><div class="chart-title-row"><p class="price">${money(spot?.price??b?.close)}</p>${b?`<span class="badge ${b.returns.day1>=0?'good':'bad'}">${percent(b.returns.day1,2,true)} daily close</span>`:''}</div>${spot?source('spot'):source('bitcoin')}</div><div class="chart-controls"><div class="segmented" aria-label="Price chart range">${[[90,'3M'],[365,'1Y'],[1460,'4Y'],[0,'ALL']].map(([n,l])=>`<button data-period="${n}" class="${state.period===n?'selected':''}" aria-pressed="${state.period===n}">${l}</button>`).join('')}</div><label class="toggle"><input id="log-scale" type="checkbox" ${state.log?'checked':''}>Log</label></div></div>${b?'<div id="price-chart" class="chart"></div>':empty('bitcoin','Bitcoin history is unavailable')}<div class="chart-legend"><span><i class="legend-dot" style="background:#cd783e"></i>Daily price</span><span><i class="legend-dot" style="background:#769277"></i>50-day average</span><span><i class="legend-dot" style="background:#768dac"></i>200-day average</span></div><div class="chart-foot">${b?`History: ${date(b.asOf)}${fresh('bitcoin')?'':' · STALE'} · ${esc(b.source)}. `:''}Returns use completed daily observations; the spot quote is separate. Hover or use the chart slider to inspect.${detail?' Weekly indicators use completed Sunday closes.':''}</div></article>`;
 }
-
-function formatDate(value) {
-  if (!value) return "N/A";
-  return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+function brief() {
+ const b=data('bitcoin'),s=data('sentiment'),m=data('macro')?.metrics;
+ let rows=[];
+ if(b&&fresh('bitcoin'))rows.push(['Price & trend',`${trend(b)}. Bitcoin’s daily close is ${percent(Math.abs((b.close/b.ma200-1)*100))} ${b.close>=b.ma200?'above':'below'} its 200-day average.`]);
+ else rows.push(['Price & trend',b?'Price history is stale. Treat the chart as historical context until the source refreshes.':'Daily price history will provide context on trend and momentum.']);
+ if(m?.liquidity.status==='current'&&m?.real.status==='current'&&valid(m.liquidity.change30)&&valid(m.real.change30)) {
+   const liq=m.liquidity.change30>=0,real=m.real.change30<=0;
+   rows.push([liq===real?(liq?'A more supportive backdrop':'A tighter backdrop'):'Macro signals disagree',`The liquidity proxy ${liq?'rose':'fell'} ${money(Math.abs(m.liquidity.change30),1)}B over four weeks. Real yields ${real?'fell':'rose'} ${num(Math.abs(m.real.change30)*100,0)} basis points over 30 days.`]);
+ } else rows.push(['Macro context',m?'Some macro inputs are delayed or unavailable. Their individual observation dates are shown in the Macro view.':'Liquidity and real yields provide different views of financial conditions.']);
+ if(s&&fresh('sentiment'))rows.push(['Mood, with context',`${s.classification} (${s.value}/100). ${valid(s.change7)?`The index moved ${delta(s.change7,' points',0)} in seven days.`:''} Sentiment is context, not a timing signal.`]);
+ else rows.push(['Mood, with context',s?'The sentiment reading is stale; it is excluded from the current assessment.':'Sentiment will appear when its daily feed is available.']);
+ return `<article class="card brief-card"><div class="brief-heading"><p class="kicker">THE SHORT READ</p><span aria-hidden="true">✳</span></div><h2>What deserves attention</h2>${rows.map(([title,text],i)=>`<div class="brief-item"><span class="brief-number">0${i+1}</span><div><h3>${esc(title)}</h3><p>${esc(text)}</p></div></div>`).join('')}<p class="brief-bottom">A rules-based reading of the available data. These observations describe conditions; they do not predict returns.</p></article>`;
 }
-
-function toIsoDate(date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).toISOString().slice(0, 10);
+function macroPulse() {
+ const m=data('macro')?.metrics;
+ return `<article class="card"><div class="card-head"><h2>Macro pulse</h2><a class="fine-print" href="#macro">Details ↗</a></div>${[['real','Real yield'],['dollar','Broad US dollar'],['credit','Credit spread']].map(([key,label])=>signal(label,metricValue(m?.[key]),m?.[key]?.asOf?`${date(m[key].asOf)} · ${m[key].status==='current'?'current':'stale / unavailable'}`:'Waiting for source')).join('')}<p class="explanation">Watch the direction together. Lower real yields and a softer dollar can ease financial conditions; credit spreads reveal stress.</p></article>`;
 }
-
-async function api(path, timeoutMs = 12000) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const response = await fetch(path, { signal: controller.signal });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(payload.error || `Request failed (${response.status})`);
-    return payload;
-  } catch (error) {
-    if (error?.name === "AbortError") throw new Error(`Request timed out after ${timeoutMs}ms`);
-    throw error;
-  } finally {
-    clearTimeout(timeoutId);
-  }
+function watchlist() {
+ const cal=data('calendar');
+ return `<article class="card"><div class="card-head"><h2>On the horizon</h2><span class="badge quiet">Official calendar</span></div>${cal?.events?.length?cal.events.slice(0,2).map(e=>`<div class="watch-item"><div class="date-box">${Number(e.date.slice(8))}<small>${new Date(e.date+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',timeZone:'UTC'})} ${e.date.slice(2,4)}</small></div><div><h3><a href="${e.url}" target="_blank" rel="noreferrer">${e.title} ↗</a></h3><p>${esc(e.note)}</p></div></div>`).join(''):`<p class="fine-print">${state.feeds.calendar?'No upcoming dates available from the feed.':'Loading published FOMC dates…'}</p>`}<div class="signal-row"><a href="https://www.bls.gov/schedule/news_release/cpi.htm" target="_blank" rel="noreferrer">CPI release schedule ↗</a><span class="fine-print">BLS</span></div><div class="signal-row"><a href="https://www.bls.gov/schedule/news_release/empsit.htm" target="_blank" rel="noreferrer">Jobs report schedule ↗</a><span class="fine-print">BLS</span></div><p class="source-line">${cal?`Federal Reserve calendar · fetched ${date(state.feeds.calendar.retrievedAt)}${fresh('calendar')?'':' · STALE'}. `:''}Dates may change. Confirm with the official schedule.</p></article>`;
 }
-
-function setActiveTab(tabName) {
-  tabs.forEach(tab => tab.classList.toggle("active", tab.dataset.tab === tabName));
-  panels.forEach(panel => panel.classList.toggle("active", panel.id === `panel-${tabName}`));
-  btcRangeControl.classList.toggle("hidden", tabName !== "bitcoin");
+function demandCard(){const a=data('adoption');return `<article class="card"><div class="card-head"><h2>Ownership concentration</h2><a href="#adoption" class="fine-print">Explore ↗</a></div>${a?a.companies.slice(0,3).map(c=>signal(esc(c.name),`${compact(c.btc)} BTC`,esc(c.symbol))).join(''):empty('adoption','Treasury data unavailable')}<p class="explanation">${a?`${esc(a.companies[0].name)} represents ${percent(a.concentration)} of reported corporate holdings. `:''}Ownership is one dimension of adoption. It does not measure new buying or payment usage.</p></article>`;}
+function overview(){return `${topStats()}${section('Market perspective','bitcoin','Open Bitcoin')}<div class="grid main-grid">${priceCard()}${brief()}</div>${section('Beyond the price')}<div class="grid grid-three">${macroPulse()}${demandCard()}${watchlist()}</div>`;}
+function bitcoinView() {
+ const b=data('bitcoin'),n=b?.network,s=data('sentiment');
+ return `${priceCard(true)}${b?`<div class="returns-strip">${[['1D',b.returns.day1],['7D',b.returns.day7],['30D',b.returns.day30],['YTD',b.returns.ytd]].map(([label,value])=>`<span>${label} <strong class="${tone(value)}">${percent(value,2,true)}</strong></span>`).join('')}<small>Completed daily observations</small></div>`:''}${section('Trend & risk')}<div class="grid grid-four">${stat('200-week average',money(b?.ma200w),b?`${percent(valid(b.ma200w)?(b.close/b.ma200w-1)*100:null,1,true)} distance from daily close`:'Long-term trend context',b?.weeklyAsOf?date(b.weeklyAsOf):'Completed Sunday closes',b?.weekly)}${stat('Weekly RSI · 14',num(b?.weeklyRsi,1),'Momentum over completed weeks',b?.weeklyAsOf?`${fresh('bitcoin')?'As of':'Stale ·'} ${date(b.weeklyAsOf)}`:'0–100 oscillator')}${stat('30-day volatility',percent(b?.volatility),'Annualized daily return volatility',b?date(b.asOf):'Risk, not direction')}${stat('Drawdown',percent(b?.drawdown),'From the highest daily price in history',b?.peak?`Peak ${date(b.peak.date)}`:'Available source history')}</div>${b&&!fresh('bitcoin')?'<div class="disclosure">These indicators use stale price history. Check Sources before interpreting current conditions.</div>':''}${section('Network fundamentals')}<div class="grid grid-four">${stat('Circulating supply',n?compact(n.supply?.value)+' BTC':'—',n?`${percent(n.supply?.value/21000000*100,2)} of the 21 million limit`:'No network observation available',n?.supply?.date?date(n.supply.date):'Coin Metrics',n?.supply?.history)}${stat('Hashrate · 30D mean',n&&valid(n.hashrate?.value)?num(n.hashrate.value/1e6)+' EH/s':'—',n?`${percent(n.hashrate?.change30,1,true)} vs 30 days earlier`:'Estimated mining computation',n?.hashrate?.date?date(n.hashrate.date):'Coin Metrics',n?.hashrate?.history)}${stat('Active addresses',compact(n?.addresses?.value),'30-day mean · addresses are not people',n?.addresses?.date?date(n.addresses.date):'Coin Metrics',n?.addresses?.history)}${stat('Daily transactions',compact(n?.transactions?.value),'30-day mean · includes non-payment activity',n?.transactions?.date?date(n.transactions.date):'Coin Metrics',n?.transactions?.history)}</div>${source('bitcoin',n?'Network activity does not measure unique users.':b?.networkError||'')}<div class="grid grid-two spaced"><article class="card"><div class="card-head"><h2>Market sentiment</h2>${badge(state.feeds.sentiment?.status)}</div>${s?`<div class="chart-title-row"><p class="price">${s.value}<span class="price-small muted"> / 100</span></p><span class="badge quiet">${esc(s.classification)}</span></div><div class="meter"><i class="meter-marker" style="left:${s.value}%"></i></div><div class="meter-labels"><span>Extreme fear</span><span>Extreme greed</span></div><div id="sentiment-chart" class="chart compact"></div>`:empty('sentiment')}${source('sentiment')}<p class="explanation">Fear & Greed combines price-related and behavioral inputs. It overlaps with momentum and is not an independent valuation measure.</p></article><article class="card"><div class="card-head"><h2>Reading the indicators</h2><span class="badge quiet">FIELD NOTES</span></div>${signal('50D / 200D averages','Trend','Price relative to recent daily history.')}${signal('200W average','Long horizon','An average of 200 completed Sunday observations.')}${signal('RSI','Momentum','Above 70 or below 30 marks strong momentum, not an automatic reversal.')}${signal('Volatility & drawdown','Risk','How much price moves and how far it sits below its historical peak.')}<p class="explanation">Realized price and MVRV need a verified on-chain cost-basis feed. They are not estimated here. The previous stock-to-flow projection is omitted from the daily view.</p></article></div>`;
 }
-
-function renderPriceCard(current, returns) {
-  const price = Number(current?.usd || 0);
-  const dayChange = Number(current?.usd_24h_change || 0);
-  const updatedAtMs = Number(current?.last_updated_at || 0) * 1000;
-
-  btcPriceEl.textContent = formatUsd(price, price >= 1000 ? 0 : 2);
-
-  const updatedLabel = updatedAtMs
-    ? new Date(updatedAtMs).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
-    : "unknown";
-
-  priceMetaEl.textContent = `${formatPercent(dayChange)} (24h) · Updated ${updatedLabel}`;
-  priceMetaEl.classList.remove("positive", "negative");
-  priceMetaEl.classList.add(dayChange >= 0 ? "positive" : "negative");
-
-  const chips = [
-    { label: "24H", value: returns.day1 },
-    { label: "7D", value: returns.day7 },
-    { label: "30D", value: returns.day30 },
-    { label: "YTD", value: returns.ytd }
-  ];
-
-  returnsRowEl.innerHTML = chips.map(item => {
-    const numeric = Number(item.value);
-    if (!Number.isFinite(numeric)) return `<span class="chip">${item.label}: N/A</span>`;
-    const tone = numeric >= 0 ? "positive" : "negative";
-    return `<span class="chip ${tone}">${item.label}: ${formatPercent(numeric)}</span>`;
-  }).join("");
+function adoptionView() {
+ const a=data('adoption');
+ return `<div class="grid grid-three">${stat('Reported corporate BTC',a?num(a.total)+' BTC':'—','Provider aggregate of corporate holdings','Reporting dates unavailable')}${stat('Share of maximum supply',percent(a?.maxSupplyShare,2),'Reported holdings ÷ 21 million BTC','Maximum supply, not circulating float')}${stat('Largest holder’s share',percent(a?.concentration,1),a?esc(a.companies[0].name):'Corporate concentration','Share of reported corporate holdings')}</div><div class="disclosure">${a?esc(a.note):'Corporate holdings reflect reported ownership. Individual filing dates may differ, and the provider may revise its coverage.'} This is an investment-adoption proxy; payment adoption and ETF holdings are separate.</div><article class="card"><div class="card-head"><div><h2>Corporate Bitcoin holdings</h2>${source('adoption')}</div><label><span class="kicker" style="display:block;margin-bottom:6px">FIND A COMPANY</span><input id="company-search" class="search" type="search" placeholder="Name or ticker…" value="${esc(state.search)}"></label></div><div id="companies">${companyTable()}</div></article><div class="grid grid-three spaced"><article class="card link-card"><p class="kicker">INSTITUTIONAL DEMAND</p><h2>ETF flows</h2><span class="badge warn">External source</span><p>Use reported net flows to assess new fund demand. Changes in dollar assets under management also include price moves. Automated access was unavailable at setup.</p><a href="https://farside.co.uk/bitcoin-etf-flow-all-data/" target="_blank" rel="noreferrer">Open Farside ETF flows ↗</a></article><article class="card link-card"><p class="kicker">HOLDINGS VERIFICATION</p><h2>Go to the issuer</h2><span class="badge quiet">Primary disclosure</span><p>Fund holdings show owned BTC, not daily buying. The issuer’s reported quantity and as-of date provide a useful cross-check.</p><a href="https://www.ishares.com/us/products/333011/ishares-bitcoin-trust" target="_blank" rel="noreferrer">View IBIT holdings ↗</a></article><article class="card link-card"><p class="kicker">ADOPTION BEYOND OWNERSHIP</p><h2>Network participation</h2><span class="badge quiet">Daily observations</span><p>Activity on the base layer adds context. Addresses can be shared or numerous per person; transactions also include exchange and non-payment activity.</p><a href="#bitcoin">Explore network fundamentals ↗</a></article></div>`;
 }
-
-
-function renderFearGreed(payload) {
-  const value = Number(payload?.value);
-  const classification = String(payload?.classification || "Unknown");
-  const updatedAt = payload?.updatedAt || null;
-
-  if (!Number.isFinite(value)) {
-    fearGreedValueEl.textContent = "N/A";
-    fearGreedClassEl.textContent = "Unavailable";
-    fearGreedClassEl.classList.remove("fg-fear", "fg-neutral", "fg-greed");
-    fearGreedMetaEl.textContent = "Source unavailable";
-    fearGreedBarEl.style.width = "0%";
-    return;
-  }
-
-  fearGreedValueEl.textContent = `${Math.round(value)}`;
-  fearGreedClassEl.textContent = classification;
-  fearGreedClassEl.classList.remove("fg-fear", "fg-neutral", "fg-greed");
-
-  const lower = classification.toLowerCase();
-  if (lower.includes("fear")) {
-    fearGreedClassEl.classList.add("fg-fear");
-  } else if (lower.includes("greed")) {
-    fearGreedClassEl.classList.add("fg-greed");
-  } else {
-    fearGreedClassEl.classList.add("fg-neutral");
-  }
-
-  fearGreedBarEl.style.width = `${Math.max(0, Math.min(100, value))}%`;
-  fearGreedMetaEl.textContent = updatedAt
-    ? `Updated ${new Date(updatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · Source: Alternative.me`
-    : "Source: Alternative.me";
+function companyTable() {
+ const a=data('adoption');if(!a)return empty('adoption','Corporate holdings are unavailable');
+ const found=a.companies.filter(c=>`${c.name} ${c.symbol}`.toLowerCase().includes(state.search.toLowerCase()));
+ const rows=state.allCompanies?found:found.slice(0,12);
+ return `<div class="table-wrap"><table><thead><tr><th>Company</th><th>Country</th><th class="numeric">Bitcoin held</th><th class="numeric">Share of reported total</th></tr></thead><tbody>${rows.map(c=>`<tr><td><span class="company-name">${esc(c.name)}</span><span class="company-ticker">${esc(c.symbol)}</span></td><td>${esc(c.country)}</td><td class="numeric">${num(c.btc,1)} BTC</td><td class="numeric">${percent(c.btc/a.total*100,2)}<div class="holding-bar"><i style="width:${Math.min(100,c.btc/a.total*100)}%"></i></div></td></tr>`).join('')||'<tr><td colspan="4">No companies match this search.</td></tr>'}</tbody></table></div><div class="table-footer"><span>${rows.length} of ${found.length} matching holders · excludes zero holdings</span>${found.length>12?`<button class="button" id="show-companies">${state.allCompanies?'Show fewer':'Show all holders'}</button>`:''}</div>`;
 }
-
-function renderPriceChart(points) {
-  const labels = points.map(([ts]) => new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" }));
-  const values = points.map(([, value]) => Number(value));
-
-  if (priceChart) priceChart.destroy();
-
-  priceChart = new Chart(priceChartCanvas, {
-    type: "line",
-    data: {
-      labels,
-      datasets: [{
-        label: "BTC / USD",
-        data: values,
-        borderColor: "#1a73e8",
-        borderWidth: 2.5,
-        pointRadius: 0,
-        tension: 0.22,
-        fill: true,
-        backgroundColor: "rgba(26, 115, 232, 0.14)"
-      }]
-    },
-    options: {
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
-        y: {
-          grid: { color: "rgba(95, 99, 104, 0.16)" },
-          ticks: { callback: value => formatUsd(value) }
-        }
-      }
-    }
-  });
+function metricValue(m) {if(!valid(m?.value))return '—';return m.unit==='billions'?m.value>=1000?`${money(m.value/1000,2)}T`:`${money(m.value,1)}B`:m.unit==='percent'||m.unit==='yoy'?percent(m.value,2):num(m.value,2);}
+function macroCard(key) {
+ const m=data('macro')?.metrics?.[key];if(!m)return `<article class="card macro-card"><p class="kicker">${esc(key)}</p><p class="macro-value skeleton">—</p><p class="fine-print">Connecting to FRED…</p></article>`;
+ const suffix=m.unit==='percent'||m.unit==='yoy'?' pp':m.unit==='billions'?'B':' pts';
+ const comparison=key==='liquidity'?'4 weeks':m.maxAge>30?'previous month':'30 days';
+ return `<article class="card macro-card"><div class="metric-top"><p class="kicker">${esc(m.name)}</p>${badge(m.status)}</div><p class="macro-value">${metricValue(m)}${m.unit==='yoy'?'<span class="price-small muted"> YoY</span>':''}</p><p class="macro-stat"><strong>${delta(m.change30,suffix,2)}</strong> vs ${comparison}</p><p class="fine-print">${esc(m.description)}</p><div class="stat-bottom"><span>${m.asOf?date(m.asOf):'No observation'}</span>${spark(m.history)}</div><div class="source-line"><a href="${esc(m.url)}" target="_blank" rel="noreferrer">${esc(m.source)}${m.id?` · ${m.id}`:''} ↗</a></div></article>`;
 }
-
-function renderM2BtcChart(points) {
-  if (m2BtcChart) { m2BtcChart.destroy(); m2BtcChart = null; }
-
-  if (!Array.isArray(points) || !points.length) {
-    if (m2BtcMetaEl) m2BtcMetaEl.textContent = "M2/BTC series unavailable";
-    return;
-  }
-
-  const labels = points.map(item => new Date(item.date).toLocaleDateString("en-US", { month: "short", year: "2-digit" }));
-  const btcValues = points.map(item => Number(item.btc));
-  const m2Values = points.map(item => Number(item.m2) / 1000);
-
-  m2BtcChart = new Chart(m2BtcChartCanvas, {
-    type: "line",
-    data: {
-      labels,
-      datasets: [
-        {
-          label: "BTC / USD",
-          data: btcValues,
-          borderColor: "#1a73e8",
-          backgroundColor: "rgba(26, 115, 232, 0.12)",
-          borderWidth: 2.2,
-          pointRadius: 0,
-          tension: 0.2,
-          yAxisID: "yBtc"
-        },
-        {
-          label: "M2 (USD Trillions)",
-          data: m2Values,
-          borderColor: "#34a853",
-          backgroundColor: "rgba(52, 168, 83, 0.14)",
-          borderWidth: 2.2,
-          pointRadius: 0,
-          tension: 0.2,
-          yAxisID: "yM2"
-        }
-      ]
-    },
-    options: {
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: true,
-          position: "bottom",
-          labels: { boxWidth: 12, boxHeight: 12 }
-        }
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } },
-        yBtc: {
-          position: "left",
-          grid: { color: "rgba(95, 99, 104, 0.14)" },
-          ticks: { callback: value => formatUsd(value) }
-        },
-        yM2: {
-          position: "right",
-          grid: { display: false },
-          ticks: { callback: value => `$${Number(value).toFixed(1)}T` }
-        }
-      }
-    }
-  });
-
-  if (m2BtcMetaEl) {
-    const start = points[0]?.date;
-    const end = points[points.length - 1]?.date;
-    m2BtcMetaEl.textContent = `M2SL (FRED) vs BTC/USD · ${formatDate(start)} to ${formatDate(end)}`;
-  }
+function macroView() {
+ const m=data('macro')?.metrics,current=m?.[state.macroMetric];
+ return `<article class="card chart-card"><div class="card-head"><div><p class="kicker">MACRO EXPLORER</p><h2 style="margin-top:9px">${esc(current?.name||'Dollar liquidity proxy')}</h2><div class="chart-title-row"><p class="price">${metricValue(current)}</p>${current?badge(current.status):''}</div></div><label><span class="kicker" style="display:block;margin-bottom:8px">INDICATOR</span><select class="select" id="macro-select">${['liquidity','real','nominal','dollar','credit','curve','inflation','unemployment','m2'].map(k=>`<option value="${k}" ${k===state.macroMetric?'selected':''}>${esc(m?.[k]?.name||k)}</option>`).join('')}</select></label></div>${current?.history?.length?'<div id="macro-chart" class="chart"></div>':empty('macro','This macro series is unavailable')}<div class="chart-foot">${esc(current?.description||'Fed assets less Treasury cash and reverse repo, aligned to weekly dates.')} ${current?.asOf?`Latest observation: ${date(current.asOf)}.`:''}</div></article>${section('Liquidity & money')}<div class="grid grid-four">${['liquidity','fed','tga','rrp'].map(macroCard).join('')}</div>${section('Rates, dollar & credit')}<div class="grid grid-three">${['real','nominal','dollar','credit','curve','twoYear'].map(macroCard).join('')}</div>${section('The real economy')}<div class="grid grid-three">${['inflation','unemployment','m2'].map(macroCard).join('')}</div><div class="disclosure">Monthly series are dated to the month they measure, not their release day. Data can be revised. The liquidity proxy is one US monetary lens; no single series determines Bitcoin’s price.</div>`;
 }
-
-function renderPlanBChart(payload) {
-  if (planbChart) { planbChart.destroy(); planbChart = null; }
-
-  const monthlyPoints = Array.isArray(payload?.monthlyPoints) ? payload.monthlyPoints : [];
-  const ma200wSeries = Array.isArray(payload?.ma200wSeries) ? payload.ma200wSeries : [];
-  const s2fSeries = Array.isArray(payload?.s2fSeries) ? payload.s2fSeries : [];
-
-  if (!monthlyPoints.length) {
-    if (planbMetaEl) planbMetaEl.textContent = "PlanB model unavailable";
-    return;
-  }
-
-  const labels = monthlyPoints.map(item => item.date);
-  const maByDate = new Map(ma200wSeries.map(item => [item.date, Number(item.value)]));
-  const s2fByDate = new Map(s2fSeries.map(item => [item.date, Number(item.value)]));
-
-  const dotData = monthlyPoints.map(item => {
-    const v = Number(item.price);
-    return Number.isFinite(v) ? v : null;
-  });
-  const dotColors = monthlyPoints.map(item => item.rsiColor || "#8aa0c4");
-  const maData = labels.map(date => {
-    const v = maByDate.get(date);
-    return Number.isFinite(v) ? v : null;
-  });
-  const s2fData = labels.map(date => {
-    const v = s2fByDate.get(date);
-    return Number.isFinite(v) ? v : null;
-  });
-
-  planbChart = new Chart(planbChartCanvas, {
-    type: "line",
-    data: {
-      labels,
-      datasets: [
-        {
-          label: "200W MA",
-          data: maData,
-          borderColor: "#111111",
-          borderWidth: 3.2,
-          pointRadius: 0,
-          tension: 0.05
-        },
-        {
-          label: "S2F Model",
-          data: s2fData,
-          borderColor: "#2d2d2d",
-          borderDash: [2, 6],
-          borderWidth: 2.2,
-          pointRadius: 0,
-          tension: 0,
-          stepped: true
-        },
-        {
-          label: "BTC (RSI color)",
-          data: dotData,
-          showLine: false,
-          pointRadius: 4.8,
-          pointHoverRadius: 6,
-          pointBackgroundColor: dotColors,
-          pointBorderWidth: 0
-        }
-      ]
-    },
-    options: {
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: "top",
-          labels: { boxWidth: 12, boxHeight: 12 }
-        },
-        tooltip: {
-          callbacks: {
-            label(context) {
-              const idx = context.dataIndex;
-              const date = labels[idx];
-              const row = monthlyPoints[idx] || {};
-              if (context.datasetIndex === 2) {
-                const rsi = Number.isFinite(Number(row.rsi14m)) ? Number(row.rsi14m).toFixed(1) : "N/A";
-                const price = Number(row.price);
-                const priceLabel = Number.isFinite(price) ? formatUsd(price) : "N/A";
-                return `BTC: ${priceLabel} · RSI14m ${rsi}`;
-              }
-              if (context.datasetIndex === 1) {
-                const v = Number(s2fData[idx]);
-                return `S2F: ${Number.isFinite(v) ? formatUsd(v) : "N/A"}`;
-              }
-              const v = Number(maData[idx]);
-              return `200W MA: ${Number.isFinite(v) ? formatUsd(v) : "N/A"} (${date})`;
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          grid: { display: false },
-          ticks: {
-            maxTicksLimit: 12,
-            callback(_value, idx) {
-              const iso = labels[idx];
-              const d = new Date(`${iso}T00:00:00Z`);
-              return Number.isNaN(d.getTime())
-                ? iso
-                : d.toLocaleDateString("en-US", { year: "2-digit", month: "short" });
-            }
-          }
-        },
-        y: {
-          type: "logarithmic",
-          min: 1,
-          max: 1000000,
-          grid: { color: "rgba(95, 99, 104, 0.14)" },
-          ticks: { callback: value => formatUsd(value) }
-        }
-      }
-    }
-  });
-
-  if (planbMetaEl) {
-    const start = monthlyPoints[0]?.date;
-    const end = monthlyPoints[monthlyPoints.length - 1]?.date;
-    planbMetaEl.textContent = `Monthly model view · ${formatDate(start)} to ${formatDate(end)} · Realized price deferred`;
-  }
+const METHODS=[
+ ['Bitcoin history, spot & returns','Coin Metrics daily prices are the primary historical series; Blockchain.com provides a price-only fallback. A refresh uses one provider’s complete history, never spliced daily sources. Today’s incomplete daily observation is excluded. Spot is fetched independently from Coinbase, with CoinGecko as fallback; Coinbase supplies no observation timestamp, so its time is labeled “fetched.” Returns compare completed daily observations on exact calendar dates. YTD uses the prior December 31 close. Missing history stays unavailable.'],
+ ['Moving averages, RSI & volatility','50D and 200D means require consecutive daily observations. The 200W mean uses 200 consecutive completed Sunday observations. Weekly RSI uses Wilder’s smoothing over 14 weekly changes; a gap resets its warm-up. Thirty-day realized volatility uses the sample standard deviation of 30 daily log returns, annualized by √365. Drawdown compares the latest daily observation with the highest daily observation in the available history; it is not an intraday all-time-high measure.'],
+ ['Network fundamentals','Supply is the latest Coin Metrics circulating-supply observation. Hashrate (converted from TH/s to EH/s), active addresses and transactions are trailing 30-day arithmetic means. Hashrate is an estimate, not a direct measurement. Addresses are not unique people, and transactions do not equal retail payments. These are base-layer activity indicators, not comprehensive adoption measures.'],
+ ['Dollar liquidity & macro changes','The liquidity proxy is WALCL / 1,000 − RRPONTSYD − WDTGAL / 1,000, expressed in billions of USD. WALCL and WDTGAL are Wednesday levels in millions; RRP is daily in billions. We match the same Wednesday and permit only RRP to carry back up to three days for holidays. The change is four calendar weeks. Other daily series compare to 30 calendar days earlier with limited holiday tolerance. Monthly changes use the prior monthly observation. CPI inflation compares the same month one year earlier. The yield curve uses matching observation dates.'],
+ ['Sentiment & the short read','Alternative.me’s Fear & Greed index runs from 0 to 100. Its daily history and seven-day point change provide context; several components already reflect price action. The short read uses transparent comparisons of price versus its 200-day mean, four-week liquidity change and 30-day real-yield change. Only current data contributes. The summary is deterministic, not an AI forecast or validated trading model.'],
+ ['Corporate ownership & adoption coverage','CoinGecko supplies aggregate and per-company Bitcoin holdings. The endpoint does not provide individual filing dates, so “fetched” never means “holdings as of today.” Maximum-supply share divides holdings by 21 million; concentration divides the largest holder by the provider aggregate. The list excludes zero holdings and does not independently verify filings. No purchase flow or growth rate is inferred from a snapshot. ETF flows remain an external source link until a reliable accessible feed is available.'],
+ ['Freshness, caches & missing data','Sources are cached independently: spot for one minute, Bitcoin history for six hours, sentiment and FRED for one hour, corporate holdings for twelve hours, and the calendar for one day. Expired saved data is shown as stale while a background refresh runs. Refresh data waits for a new attempt. A failed request never overwrites the last good observation. We also mark delayed daily Bitcoin/sentiment data (over three days), weekly macro (over ten days), daily macro (over five to seven days), and monthly macro (over 65–75 days). “Current” is relative to that cadence, not a guarantee against revisions. Treasury reporting dates remain unknown.'],
+ ['Calendar, models & deliberate omissions','FOMC decision dates come from the Federal Reserve’s published calendar, with the final day of each meeting shown. Tentative dates can change. CPI and jobs reports link to BLS schedules because automated access was unavailable; no dates are guessed. The prior stock-to-flow projection was removed from the daily experience. Realized price, MVRV, derivatives positioning and automated ETF flows await verified source access.']
+];
+function sourcesView() {
+ const names={spot:'Spot price',bitcoin:'Bitcoin & network',sentiment:'Fear & Greed',adoption:'Corporate holdings',calendar:'FOMC calendar'};
+ const rows=Object.entries(names).map(([key,name])=>{const f=state.feeds[key],d=f?.data;return `<div class="source-item"><div><a ${d?`href="${esc(d.url)}" target="_blank" rel="noreferrer"`:''}>${name} ${d?'↗':''}</a><p>${esc(d?.source||'Waiting for source')}</p></div><div>${badge(f?.status)}${f?.refreshing?'<p>Refresh in progress</p>':''}</div><div><p>${d?.asOf?`${d.timestampKind==='retrieved'?'Fetched':'Observation'}: ${date(d.asOf)}`:key==='adoption'?'Reporting dates: not supplied':'Published schedule'}<br>Retrieved: ${f?.retrievedAt?date(f.retrievedAt):'Not yet available'}${f?.error?`<br>${esc(f.error)}`:''}</p></div></div>`;});
+ const macro=data('macro')?.metrics;
+ if(macro)for(const m of Object.values(macro))rows.push(`<div class="source-item"><div><a href="${esc(m.url)}" target="_blank" rel="noreferrer">${esc(m.name)} ↗</a><p>${esc(m.source)} ${esc(m.id||'')}</p></div><div>${badge(m.status)}</div><div><p>Observation: ${m.asOf?date(m.asOf):'Unavailable'}${m.error?`<br>${esc(m.error)}`:''}</p></div></div>`);
+ return `<article class="card"><div class="card-head"><h2>Source health</h2><span class="badge quiet">No synthetic data</span></div>${rows.join('')}</article>${section('How to read the dashboard')}<article class="card methods">${METHODS.map(([title,text])=>`<details><summary>${title}</summary><p>${esc(text)}</p></details>`).join('')}</article><div class="disclosure">Designed for understanding market conditions. Indicators describe different timeframes and can disagree. Figures may be delayed, incomplete or revised; consult the linked primary disclosures before acting on a specific number.</div>`;
 }
-
-function metricHtml({ name, value, date }) {
-  return `<article class="metric"><p class="name">${name}</p><p class="value">${value ?? "N/A"}</p><p class="date">${date ? `As of ${formatDate(date)}` : ""}</p></article>`;
+function render() {
+ const openDetails=[...document.querySelectorAll('.methods details')].map(d=>d.open);
+ const [eyebrow,title,subtitle]=PAGES[state.view];$('eyebrow').textContent=eyebrow;$('page-title').textContent=title;$('page-subtitle').textContent=subtitle;$('breadcrumb').textContent=state.view==='macro'?'MACRO LANDSCAPE':state.view.toUpperCase();
+ document.querySelectorAll('[data-view]').forEach(a=>{const active=a.dataset.view===state.view;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+ $('view').innerHTML=({overview,bitcoin:bitcoinView,adoption:adoptionView,macro:macroView,sources:sourcesView}[state.view])();
+ document.querySelectorAll('.methods details').forEach((d,i)=>d.open=Boolean(openDetails[i]));
+ renderCharts();renderStatus();
 }
-
-function renderLiquidity(macro) {
-  const m = macro.metrics || {};
-  liquidityMetricsEl.innerHTML = [
-    metricHtml({ name: "Fed Balance Sheet", value: formatMillions(m.fedBalanceSheet?.value), date: m.fedBalanceSheet?.date }),
-    metricHtml({ name: "Reverse Repo", value: formatBillions(m.reverseRepo?.value), date: m.reverseRepo?.date }),
-    metricHtml({ name: "Treasury General Account", value: formatBillions(m.treasuryGeneralAccount?.value), date: m.treasuryGeneralAccount?.date }),
-    metricHtml({ name: "Net Liquidity Index", value: Number.isFinite(Number(m.netLiquidityIndex?.value)) ? Number(m.netLiquidityIndex.value).toFixed(2) : "N/A", date: m.netLiquidityIndex?.date })
-  ].join("");
-
-  const cacheState = macro.cacheState || "unknown";
-  const age = Number.isFinite(Number(macro.cacheAgeMinutes)) ? ` · cache ${macro.cacheAgeMinutes}m` : "";
-  const okSummary = Number.isFinite(Number(macro.okSeriesCount)) ? ` · ${macro.okSeriesCount}/${macro.totalSeriesCount || 0} series` : "";
-  liquidityMetaEl.textContent = `Composite = normalized Fed balance sheet - RRP - TGA · ${cacheState}${age}${okSummary}`;
-
-  const series = Array.isArray(macro.liquiditySeries) ? macro.liquiditySeries : [];
-  const labels = series.map(item => new Date(item.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }));
-  const values = series.map(item => item.netLiquidityIndex);
-
-  if (liquidityChart) { liquidityChart.destroy(); liquidityChart = null; }
-  if (!values.length) return;
-
-  liquidityChart = new Chart(liquidityChartCanvas, {
-    type: "line",
-    data: {
-      labels,
-      datasets: [{
-        label: "Net Liquidity Index",
-        data: values,
-        borderColor: "#34a853",
-        borderWidth: 2,
-        pointRadius: 0,
-        tension: 0.18,
-        fill: true,
-        backgroundColor: "rgba(52, 168, 83, 0.12)"
-      }]
-    },
-    options: {
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
-        y: { grid: { color: "rgba(95, 99, 104, 0.14)" } }
-      }
-    }
-  });
+function renderStatus() {
+ let current=0,stale=0,missing=0,loading=0;
+ for(const key of FEEDS){const f=state.feeds[key];if(!f){loading++;continue;}if(key==='macro'&&f.data){const statuses=Object.values(f.data.metrics).map(m=>m.status);if(statuses.every(s=>s==='current'))current++;else if(statuses.some(s=>s!=='unavailable'))stale++;else missing++;}else if(f.status==='current')current++;else if(f.status==='stale')stale++;else missing++;}
+ const parts=[`${current} / ${FEEDS.length} feeds current`,...(stale?[`${stale} delayed or partial`]:[]),...(missing?[`${missing} unavailable`]:[]),...(loading?[`${loading} connecting`]:[])];
+ $('feed-status').innerHTML=`<span class="status-dot ${stale||missing||loading?'warn':''}"></span>${parts.join(' <span aria-hidden="true">·</span> ')}<a class="status-link" href="#sources">Observation dates & source health ↗</a>`;
 }
-
-function renderRates(macro) {
-  const m = macro.metrics || {};
-  ratesMetricsEl.innerHTML = [
-    metricHtml({ name: "10Y Treasury", value: Number.isFinite(Number(m.tenYearYield?.value)) ? `${Number(m.tenYearYield.value).toFixed(2)}%` : "N/A", date: m.tenYearYield?.date }),
-    metricHtml({ name: "10Y Real Yield", value: Number.isFinite(Number(m.realTenYearYield?.value)) ? `${Number(m.realTenYearYield.value).toFixed(2)}%` : "N/A", date: m.realTenYearYield?.date }),
-    metricHtml({ name: "DXY Broad", value: Number.isFinite(Number(m.dxyBroad?.value)) ? Number(m.dxyBroad.value).toFixed(2) : "N/A", date: m.dxyBroad?.date }),
-    metricHtml({ name: "2s10s Curve", value: Number.isFinite(Number(m.curveSpread?.value)) ? `${Number(m.curveSpread.value).toFixed(2)}%` : "N/A", date: m.curveSpread?.date })
-  ].join("");
+// SVG charts keep the app independent of external scripts. The range input also exposes data to keyboard users.
+function drawChart(id,rows,series,{log=false,format=money,domain=null,compactChart=false}={}) {
+ const el=$(id);if(!el||!rows.length)return;
+ const W=Math.max(260,el.clientWidth),H=compactChart?180:260,L=8,R=65,T=14,B=27;
+ const values=rows.flatMap(p=>series.map(s=>p[s.key])).filter(v=>valid(v)&&(!log||v>0));
+ if(!values.length){el.innerHTML='<div class="empty">No observations for this indicator</div>';return;}
+ const transform=v=>log?Math.log10(v):v;
+ let lo=domain?domain[0]:Math.min(...values),hi=domain?domain[1]:Math.max(...values);
+ if(lo===hi){lo-=Math.abs(lo)*.05||1;hi+=Math.abs(hi)*.05||1;}
+ if(log)lo=Math.max(lo,Math.min(...values.filter(v=>v>0))*.9);
+ let min=transform(lo),max=transform(hi);if(!domain){const pad=(max-min)*.08;min-=pad;max+=pad;}
+ const first=Date.parse(rows[0].date),end=Date.parse(rows.at(-1).date),span=end-first||1;
+ const x=i=>L+(Date.parse(rows[i].date)-first)/span*(W-L-R), y=v=>T+(1-(transform(v)-min)/(max-min))*(H-T-B);
+ const ticks=Array.from({length:4},(_,i)=>{const t=min+(max-min)*i/3;return log?10**t:t;});
+ const grid=ticks.map(v=>`<line class="chart-grid" x1="${L}" y1="${y(v)}" x2="${W-R}" y2="${y(v)}"/><text class="chart-axis" x="${W-R+10}" y="${y(v)+4}">${esc(format(v))}</text>`).join('');
+ const dates=[...new Set(Array.from({length:5},(_,i)=>Math.round(i*(rows.length-1)/4)))].map((i,j,a)=>`<text class="chart-axis" x="${x(i)}" y="${H-6}" text-anchor="${j===0?'start':j===a.length-1?'end':'middle'}">${new Date(rows[i].date+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',year:'2-digit',timeZone:'UTC'})}</text>`).join('');
+ const paths=series.map(s=>{let started=false;const d=rows.map((p,i)=>{const v=p[s.key];if(!valid(v)||(log&&v<=0)){started=false;return '';}const cmd=started?'L':'M';started=true;return `${cmd}${x(i).toFixed(2)},${y(v).toFixed(2)}`;}).join(' ');return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.width||1.8}" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`;}).join('');
+ el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(series.map(s=>s.name).join(', '))} from ${date(rows[0].date)} to ${date(rows.at(-1).date)}"><title>${esc(series.map(s=>s.name).join(', '))}</title>${grid}${dates}${paths}<line class="chart-cross" x1="0" x2="0" y1="${T}" y2="${H-B}"/></svg><div class="chart-tip" role="status"></div><label class="sr-only" for="${id}-range">Inspect ${esc(series[0].name)} by date</label><input class="chart-range" id="${id}-range" type="range" min="0" max="${rows.length-1}" value="${rows.length-1}" aria-label="Inspect ${esc(series[0].name)} by date">`;
+ const svg=el.querySelector('svg'),tip=el.querySelector('.chart-tip'),cross=el.querySelector('.chart-cross'),range=el.querySelector('input');
+ function inspect(index,show=true){index=Math.max(0,Math.min(rows.length-1,index));const p=rows[index];range.value=String(index);const text=`${date(p.date)}; ${series.map(s=>`${s.name}: ${format(p[s.key])}`).join('; ')}`;range.setAttribute('aria-valuetext',text);if(!show)return;tip.innerHTML=`<strong>${date(p.date)}</strong>${series.map(s=>`<div><span style="color:${s.color}">●</span> ${s.name}: ${format(p[s.key])}</div>`).join('')}`;tip.style.display='block';tip.style.left=`${Math.max(4,Math.min(el.clientWidth-tip.offsetWidth-4,x(index)/W*el.clientWidth-tip.offsetWidth/2))}px`;cross.setAttribute('x1',x(index));cross.setAttribute('x2',x(index));cross.style.opacity='1';}
+ inspect(rows.length-1,false);
+ svg.addEventListener('pointermove',event=>{const box=svg.getBoundingClientRect(),px=(event.clientX-box.left)/box.width*W;const target=first+(px-L)/(W-L-R)*span;let closest=0;for(let i=1;i<rows.length;i++)if(Math.abs(Date.parse(rows[i].date)-target)<Math.abs(Date.parse(rows[closest].date)-target))closest=i;inspect(closest);});
+ const hide=()=>{tip.style.display='none';cross.style.opacity='0';};svg.addEventListener('pointerleave',hide);range.addEventListener('input',()=>inspect(Number(range.value)));range.addEventListener('focus',()=>inspect(Number(range.value)));range.addEventListener('blur',hide);
 }
-
-function renderRegime(macro) {
-  const regime = macro.regime || { liquidity: "Unknown", rates: "Unknown", macroRisk: "Unknown", rationale: [] };
-  const tone = value => {
-    if (value === "Low" || value === "Expanding" || value === "Easing") return "ok";
-    if (value === "Medium" || value === "Unknown") return "warn";
-    return "risk";
-  };
-
-  regimePillsEl.innerHTML = [
-    `<span class="pill ${tone(regime.liquidity)}">Liquidity: ${regime.liquidity}</span>`,
-    `<span class="pill ${tone(regime.rates)}">Rates: ${regime.rates}</span>`,
-    `<span class="pill ${tone(regime.macroRisk)}">Macro Risk: ${regime.macroRisk}</span>`
-  ].join("");
-
-  regimeRationaleEl.innerHTML = (regime.rationale || []).map(item => `<li>${item}</li>`).join("");
+function renderCharts() {
+ const b=data('bitcoin');if($('price-chart')&&b){const cutoff=state.period?Date.parse(b.asOf)-state.period*86400000:0;drawChart('price-chart',b.history.filter(p=>Date.parse(p.date)>=cutoff),[{key:'value',name:'Daily price',color:'#cd783e',width:2},{key:'ma50',name:'50D average',color:'#769277',width:1.4},{key:'ma200',name:'200D average',color:'#768dac',width:1.4}],{log:state.log,format:v=>valid(v)?money(v>=1000?v/1000:v,v>=1000?1:v<1?3:2)+(v>=1000?'k':''):'—'});}
+ if($('sentiment-chart'))drawChart('sentiment-chart',data('sentiment').history,[{key:'value',name:'Fear & Greed',color:'#80956e'}],{format:v=>num(v,0),domain:[0,100],compactChart:true});
+ if($('macro-chart')){const m=data('macro').metrics[state.macroMetric];drawChart('macro-chart',m.history,[{key:'value',name:m.name,color:'#75916f',width:2}],{format:v=>m.unit==='billions'?money(v/1000,2)+'T':m.unit==='percent'||m.unit==='yoy'?percent(v,1):num(v,1)});}
 }
-
-function renderCalendar() {
-  const year = calendarMonth.getFullYear();
-  const month = calendarMonth.getMonth();
-  const first = new Date(year, month, 1);
-  const start = new Date(first);
-  start.setDate(first.getDate() - first.getDay());
-
-  calendarMonthLabel.textContent = first.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-
-  const eventMap = new Map();
-  for (const event of calendarEvents) {
-    const key = event.dateISO;
-    if (!eventMap.has(key)) eventMap.set(key, []);
-    eventMap.get(key).push(event);
-  }
-
-  const todayIso = toIsoDate(new Date());
-  const cells = [];
-
-  for (let i = 0; i < 42; i += 1) {
-    const d = new Date(start);
-    d.setDate(start.getDate() + i);
-    const iso = toIsoDate(d);
-    const isCurrentMonth = d.getMonth() === month;
-    const dayEvents = eventMap.get(iso) || [];
-
-    cells.push(`
-      <div class="calendar-day ${isCurrentMonth ? "" : "muted"} ${iso === todayIso ? "today" : ""}">
-        <p class="day-num">${d.getDate()}</p>
-        <div class="day-events">
-          ${dayEvents.slice(0, 2).map(event => `<span class="dot ${event.type === "earnings" ? "earnings" : "macro"}">${event.title}</span>`).join("")}
-        </div>
-      </div>
-    `);
-  }
-
-  calendarGrid.innerHTML = cells.join("");
-
-  const nowIso = toIsoDate(new Date());
-  const upcoming = calendarEvents.filter(event => event.dateISO >= nowIso).slice(0, 12);
-  calendarUpcoming.innerHTML = upcoming.map(event => `
-    <article class="upcoming-item">
-      <p class="upcoming-title">${event.title}${event.subtitle ? ` · ${event.subtitle}` : ""}</p>
-      <p class="upcoming-date">${event.date}</p>
-      <p class="upcoming-note">${event.note}</p>
-    </article>
-  `).join("");
-}
-
-async function loadCalendar() {
-  try {
-    const payload = await api("/api/calendar", 12000);
-    calendarEvents = Array.isArray(payload.events) ? payload.events : [];
-    renderCalendar();
-  } catch {
-    calendarEvents = [];
-    renderCalendar();
-  }
-}
-
-async function loadDashboard() {
-  refreshBtn.disabled = true;
-  refreshBtn.textContent = "Refreshing...";
-
-  const macroPromise = api("/api/macro/v1", 14000);
-  const [currentRes, historyRes, returnsRes, fearGreedRes, calendarRes, m2BtcRes, planbRes] = await Promise.allSettled([
-    api("/api/btc/current", 9000),
-    api(`/api/btc/history?days=${encodeURIComponent(rangeSelect.value)}`, 11000),
-    api("/api/btc/returns", 11000),
-    api("/api/bitcoin/fear-greed", 9000),
-    api("/api/calendar", 12000),
-    api("/api/bitcoin/m2-vs-btc", 12000),
-    api("/api/bitcoin/planb-model", 14000)
-  ]);
-
-  const currentPayload = currentRes.status === "fulfilled" ? currentRes.value : null;
-  const historyPayload = historyRes.status === "fulfilled" ? historyRes.value : null;
-  const returnsPayload = returnsRes.status === "fulfilled" ? returnsRes.value : null;
-
-  if (currentPayload?.bitcoin) {
-    renderPriceCard(currentPayload.bitcoin, returnsPayload?.returns || { day1: null, day7: null, day30: null, ytd: null });
-  } else {
-    btcPriceEl.textContent = "Unavailable";
-    priceMetaEl.textContent = "BTC price feed unavailable";
-    priceMetaEl.classList.remove("positive", "negative");
-    returnsRowEl.innerHTML = "";
-  }
-
-  if (historyPayload?.prices?.length) renderPriceChart(historyPayload.prices);
-
-  const fearGreedPayload = fearGreedRes.status === "fulfilled" ? fearGreedRes.value : null;
-  renderFearGreed(fearGreedPayload);
-
-  const m2BtcPayload = m2BtcRes.status === "fulfilled" ? m2BtcRes.value : null;
-  renderM2BtcChart(m2BtcPayload?.points || []);
-  const planbPayload = planbRes.status === "fulfilled" ? planbRes.value : null;
-  renderPlanBChart(planbPayload);
-
-
-  if (calendarRes.status === "fulfilled") {
-    calendarEvents = Array.isArray(calendarRes.value.events) ? calendarRes.value.events : [];
-  } else {
-    calendarEvents = [];
-  }
-  renderCalendar();
-
-  const macroRes = await Promise.allSettled([macroPromise]);
-  const macroPayload = macroRes[0].status === "fulfilled" ? macroRes[0].value : null;
-
-  if (macroPayload) {
-    renderLiquidity(macroPayload);
-    renderRates(macroPayload);
-    renderRegime(macroPayload);
-  } else {
-    liquidityMetaEl.textContent = "Macro feeds unavailable or timed out";
-  }
-
-  refreshBtn.disabled = false;
-  refreshBtn.textContent = "Refresh";
-}
-
-for (const tab of tabs) {
-  tab.addEventListener("click", () => setActiveTab(tab.dataset.tab));
-}
-
-calPrevBtn.addEventListener("click", () => {
-  calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1);
-  renderCalendar();
+$('view').addEventListener('click',event=>{
+ const period=event.target.closest('[data-period]');if(period){state.period=Number(period.dataset.period);render();}
+ if(event.target.closest('#show-companies')){state.allCompanies=!state.allCompanies;$('companies').innerHTML=companyTable();}
 });
+$('view').addEventListener('change',event=>{if(event.target.id==='log-scale'){state.log=event.target.checked;renderCharts();}if(event.target.id==='macro-select'){state.macroMetric=event.target.value;render();}});
+$('view').addEventListener('input',event=>{if(event.target.id==='company-search'){state.search=event.target.value;state.allCompanies=false;$('companies').innerHTML=companyTable();}});
+function navigate(){const key=location.hash.slice(1);state.view=PAGES[key]?key:'overview';render();}
+window.addEventListener('hashchange',navigate);
+async function load(force=false) {
+ if(state.busy)return;state.busy=true;$('refresh').disabled=true;$('refresh').innerHTML='<span aria-hidden="true">↻</span> Refreshing…';
+ await Promise.allSettled(FEEDS.map(async key=>{
+  try{const response=await fetch(`/api/${key}${force?'?refresh=1':''}`,{signal:AbortSignal.timeout(32000)});if(!response.ok)throw new Error('Request failed');const payload=await response.json();state.feeds[key]=key==='macro'?{data:payload,status:'current'}:payload;}
+  catch{const prior=state.feeds[key];state.feeds[key]=prior?.data?{...prior,status:'stale',error:'Refresh failed. Showing previous data.'}:{data:null,status:'unavailable',error:'Source unavailable or request timed out.'};if(key==='macro'&&prior?.data)Object.values(prior.data.metrics).forEach(m=>m.status=m.value===null?'unavailable':'stale');}
+  // Do not replace a focused search field while other feeds complete.
+  const active=document.activeElement?.id;if(active==='company-search'){renderStatus();}else render();
+ }));
+ state.busy=false;$('refresh').disabled=false;$('refresh').innerHTML='<span aria-hidden="true">↻</span> Refresh data';
+}
+$('refresh').addEventListener('click',()=>load(true));
+$('today').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+navigate();load();
+// Pick up background cache refreshes, and keep an open workspace useful without aggressive polling.
+setTimeout(()=>load(),18000);
+setInterval(()=>{if(!document.hidden)load();},60000);
 
-calNextBtn.addEventListener("click", () => {
-  calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1);
-  renderCalendar();
-});
-
-refreshBtn.addEventListener("click", loadDashboard);
-rangeSelect.addEventListener("change", loadDashboard);
-
-setActiveTab("bitcoin");
-loadDashboard();
+let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(renderCharts,150);});

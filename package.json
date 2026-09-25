@@ -1,11 +1,9 @@
 {
   "name": "macro-dashboard",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Macro dashboard from a Bitcoiner perspective",
+  "description": "A Bitcoin and macro research dashboard",
   "main": "server.js",
-  "scripts": {
-    "start": "node scripts/start-dashboard.js",
-    "start:raw": "node server.js"
-  }
+  "engines": {"node": ">=22"},
+  "scripts": {"start":"node server.js","start:raw":"node server.js","test":"node --test test/*.test.js"}
 }

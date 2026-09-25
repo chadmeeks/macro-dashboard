@@ -1,156 +1,34 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Macro Dashboard</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">Macro Dashboard V1</p>
-        <h1>Bitcoin-First Macro Pulse</h1>
-        <p class="subhead">Liquidity, rates, dollar, and calendar from a Bitcoiner lens.</p>
-      </div>
-      <div class="actions">
-        <label class="range-select" id="btcRangeControl">
-          BTC Chart
-          <select id="rangeSelect">
-            <option value="7">7D</option>
-            <option value="30">30D</option>
-            <option value="90">90D</option>
-            <option value="365" selected>1Y</option>
-            <option value="max">Max</option>
-          </select>
-        </label>
-        <button id="refreshBtn" class="button">Refresh</button>
-      </div>
-    </header>
-
-    <nav class="tabs" aria-label="Dashboard sections">
-      <button class="tab active" data-tab="bitcoin">Bitcoin</button>
-      <button class="tab" data-tab="macro">Macro</button>
-      <button class="tab" data-tab="calendar">Calendar</button>
-    </nav>
-
-    <main>
-      <section id="panel-bitcoin" class="tab-panel active">
-        <div class="layout bitcoin-layout">
-          <section class="card btc-spot" aria-live="polite">
-            <p class="label">Bitcoin / USD</p>
-            <p id="btcPrice" class="price">Loading...</p>
-            <p id="priceMeta" class="meta">Fetching market data...</p>
-            <div class="chip-row" id="returnsRow"></div>
-          </section>
-          <section class="card fear-card" aria-live="polite">
-            <p class="label">Fear &amp; Greed Index</p>
-            <p id="fearGreedValue" class="price small">--</p>
-            <p id="fearGreedClass" class="meta">Loading...</p>
-            <div class="fg-track" aria-hidden="true">
-              <div id="fearGreedBar" class="fg-fill"></div>
-            </div>
-            <p id="fearGreedMeta" class="meta tiny">Source: Alternative.me</p>
-          </section>
-
-
-          <section class="card chart-card">
-            <div class="card-head">
-              <p class="label">BTC Price Over Time</p>
-            </div>
-            <div class="chart-wrap">
-              <canvas id="priceChart"></canvas>
-            </div>
-          </section>
-
-          <section class="card m2-card" aria-live="polite">
-            <div class="card-head">
-              <p class="label">M2 Money Supply vs Bitcoin</p>
-              <p id="m2BtcMeta" class="meta tiny">US M2SL (FRED) vs BTC/USD</p>
-            </div>
-            <div class="chart-wrap compact">
-              <canvas id="m2BtcChart"></canvas>
-            </div>
-          </section>
-
-          <section class="card planb-card" aria-live="polite">
-            <div class="card-head">
-              <p class="label">PlanB Style Model</p>
-              <p id="planbMeta" class="meta tiny">Monthly RSI dots + 200W MA + S2F step model</p>
-            </div>
-            <div class="chart-wrap tall">
-              <canvas id="planbChart"></canvas>
-            </div>
-            <div class="planb-foot">
-              <div class="rsi-legend">
-                <span>RSI 45</span>
-                <div class="rsi-bar" aria-hidden="true"></div>
-                <span>85</span>
-              </div>
-              <p class="meta tiny">Model lens only. Not investment advice.</p>
-            </div>
-          </section>
-        </div>
-      </section>
-
-      <section id="panel-macro" class="tab-panel">
-        <div class="layout macro-layout">
-          <section class="card liquidity-card">
-            <div class="card-head">
-              <p class="label">Dollar Liquidity Pulse</p>
-              <p id="liquidityMeta" class="meta tiny">FRED series composite</p>
-            </div>
-            <div class="chart-wrap compact">
-              <canvas id="liquidityChart"></canvas>
-            </div>
-            <div class="metric-grid" id="liquidityMetrics"></div>
-          </section>
-
-          <section class="card rates-card">
-            <div class="card-head">
-              <p class="label">Rates + Dollar</p>
-            </div>
-            <div class="metric-grid" id="ratesMetrics"></div>
-          </section>
-
-          <section class="card regime-card">
-            <div class="card-head">
-              <p class="label">Regime Summary</p>
-            </div>
-            <div class="pill-row" id="regimePills"></div>
-            <ul class="rationale" id="regimeRationale"></ul>
-          </section>
-        </div>
-      </section>
-
-      <section id="panel-calendar" class="tab-panel">
-        <div class="layout calendar-layout">
-          <section class="card calendar-card">
-            <div class="calendar-head">
-              <button id="calPrevBtn" class="button">Prev</button>
-              <p id="calendarMonthLabel" class="calendar-month">Month</p>
-              <button id="calNextBtn" class="button">Next</button>
-            </div>
-            <div class="calendar-weekdays">
-              <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
-            </div>
-            <div id="calendarGrid" class="calendar-grid"></div>
-          </section>
-
-          <section class="card upcoming-card">
-            <div class="card-head">
-              <p class="label">Upcoming Releases + Earnings</p>
-            </div>
-            <div id="calendarUpcoming" class="upcoming-list"></div>
-          </section>
-        </div>
-      </section>
-    </main>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="app.js"></script>
-  </body>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#172423"><meta name="description" content="Your daily view of Bitcoin, adoption and the macro landscape.">
+  <title>Macro — Bitcoin & the bigger picture</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to dashboard</a>
+<aside class="sidebar">
+  <a class="brand" href="#overview" aria-label="Macro home"><span class="brand-mark">m<span>·</span></span><span>macro<span class="brand-sub">BITCOIN & THE BIGGER PICTURE</span></span></a>
+  <div class="nav-label">YOUR WORKSPACE</div>
+  <nav aria-label="Dashboard">
+    <a href="#overview" data-view="overview"><span class="nav-icon">◫</span>Overview</a>
+    <a href="#bitcoin" data-view="bitcoin"><span class="nav-icon">₿</span>Bitcoin</a>
+    <a href="#adoption" data-view="adoption"><span class="nav-icon">◈</span>Adoption</a>
+    <a href="#macro" data-view="macro"><span class="nav-icon">⌁</span>Macro landscape</a>
+    <a href="#sources" data-view="sources"><span class="nav-icon">≡</span>Sources & methods</a>
+  </nav>
+  <div class="sidebar-bottom"><div class="orbit">₿</div><p>See the signal.<br>Keep the context.</p><span>A personal research workspace</span></div>
+</aside>
+<div class="workspace">
+  <header class="topbar"><div class="breadcrumb">WORKSPACE <span>/</span> <strong id="breadcrumb">OVERVIEW</strong></div><div class="toolbar"><span id="today"></span><button class="button" id="refresh"><span aria-hidden="true">↻</span> Refresh data</button></div></header>
+  <main id="main" tabindex="-1">
+    <section class="page-heading"><div><p class="eyebrow" id="eyebrow">THE DAILY PICTURE</p><h1 id="page-title">A little perspective.</h1><p class="subtitle" id="page-subtitle">Bitcoin, capital flows, and the forces around them.</p></div><div class="edition"><span class="edition-dot"></span> RESEARCH DASHBOARD <span class="edition-version">02</span></div></section>
+    <div id="feed-status" class="feed-status" role="status" aria-live="polite">Connecting to data sources…</div>
+    <div id="view"></div>
+    <footer><span>macro<span class="orange">·</span> <span class="footer-note">Context before conviction.</span></span><a href="#sources">Sources, definitions & limitations ↗</a></footer>
+  </main>
+</div>
+</body>
 </html>
