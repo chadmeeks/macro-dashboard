@@ -24,3 +24,5 @@
 .metric-help-tooltip{position:fixed;z-index:1000;width:320px;max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);overflow:auto;padding:17px 19px;border:1px solid #d4ddcf;border-radius:10px;background:#fff;box-shadow:0 8px 30px #192b2726;color:var(--ink);font-size:12px;line-height:1.65;letter-spacing:normal;text-transform:none;text-align:left}
 .metric-help-tooltip[hidden]{display:none}.metric-help-tooltip>strong{font-size:13px;font-weight:600}.metric-help-tooltip p{margin-top:9px;color:#52645b}.metric-help-tooltip b{display:block;color:var(--ink);font-size:10px;font-weight:600;margin:12px 0 3px}
 @media(max-width:700px){.metric-info{width:28px;height:28px;margin-top:-5px;margin-bottom:-5px}}
+
+.last-refreshed{margin-left:auto;font-variant-numeric:tabular-nums}@media(max-width:700px){.last-refreshed{width:100%;margin-left:0}}

@@ -20,7 +20,7 @@ Optional environment variables:
 
 ## What is included
 
-- **Overview:** daily market perspective, transparent rules-based short read, macro pulse, ownership concentration and upcoming published FOMC decisions.
+- **Overview:** local “Last refreshed” timestamp for the last completed dashboard check (source observation dates and failures remain separate), daily market perspective, transparent rules-based short read, macro pulse, ownership concentration and upcoming published FOMC decisions.
 - **Bitcoin:** spot quote, daily price with 50/200-day means, 3M/1Y/4Y/all-history and log views; weekly RSI and 200-week mean, returns, volatility, drawdown; supply, smoothed hashrate, active addresses and transactions; sentiment history.
 - **Adoption:** corporate treasury snapshot, concentration, maximum-supply share and searchable company holdings, plus direct ETF-flow and issuer links.
 - **Macro:** interactive explorer, date-aligned dollar-liquidity proxy, rates, dollar, credit, inflation, unemployment and US M2.

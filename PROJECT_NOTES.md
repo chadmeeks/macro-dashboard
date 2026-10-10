@@ -1,4 +1,30 @@
-# Project handoff — September 25, 2026
+# Project handoff — October 10, 2026
+
+## Start here next session
+
+- Repository: `/Users/chadmeeks/Development/macro-dashboard`; origin is `git@github.com:chadmeeks/macro-dashboard.git`.
+- Current branch is `main`. The reviewed narratives/research work was fast-forward merged and pushed in `813ecfc` (`Add Bitcoin narratives and research dashboard enhancements`). The old `feature/bitcoin-narratives` branch remains at that commit; no outstanding feature merge is needed. This handoff and the Overview timestamp are the follow-up commit; check `git log -3` for its hash.
+- The user likes the Bitcoin Narratives page. Its scope must remain news, fundamentals, adoption, policy, security, mining, network development and real-world events. The user explicitly rejected chart/trading narratives such as recovery trends and liquidation-driven downside. ETF flows and institutional/corporate adoption remain relevant.
+- The latest UI request is complete: Overview shows **Last refreshed** in its source-status row, with local date/time, seconds and timezone. It updates after the dashboard feed cycle and observation-archive request finish, including automatic checks. It means the last completed check, not the publication date or guaranteed successful refresh of every source. Individual stale/unavailable indicators remain authoritative. It is browser-session state, initially “Waiting for first refresh…”, shown only on Overview and wrapped onto its own line on mobile. Implementation: `state.lastRefreshed`, `load()` and `renderStatus()` in `public/app.js`; `.last-refreshed` in `public/styles.css`.
+- **Research check-in:** “Mark reviewed” resets the browser snapshot baseline and hides the panel when there are no changes. New comparable readings or source-status changes bring it back. Unchanged reloads/navigation keep it hidden after loading. A browser-storage failure keeps the warning visible. An accessible confirmation is announced through `#checkin-feedback`; keyboard focus moves to main. Snapshot storage is `macro.visit.v1`. Refreshes preserve the in-memory comparison baseline while saving the latest snapshot for the next page visit.
+- **Metric help:** `public/metric-help.js` supplies discreet info buttons with definitions and Bitcoin interpretation, supporting hover, click/tap, focus, Escape and outside dismissal. A shared viewport-positioned tooltip avoids card/table clipping. Labels are matched to a glossary; add a matching entry when introducing a new metric label.
+- **Next possible feature:** Bitcoin X Narratives is a saved brainstorm, not implemented. The user rejected Bitcoin Voices/blogs, Bluesky and manual X imports. Their latest interest is reading their own X feed through a logged-in headless browser. See the saved idea and latest decision below. No X credentials, browser session, paid integration or AI summarizer has been configured.
+
+## Run, review and preserve data
+
+Node.js 22+, no npm dependencies needed for the app. `npm start` runs `node server.js` on `127.0.0.1:3001`; `PORT=3002 node server.js` starts a separate preview. The reviewed page is `http://localhost:3002/#narratives`. At handoff there are listeners on both 3001 and 3002; process IDs are ephemeral, so inspect before restarting. Port 3001 predates the feature work and may still have old server modules loaded. Static frontend edits load on page refresh; backend changes require restarting the intended process. Do not stop another process just because the port is busy.
+
+The tracked legacy `data/macro-cache.json` has a pre-existing generated change that is intentionally left uncommitted and unpushed. It is not used by the current feeds; preserve it. Runtime `data/cache-v2/` is ignored, including imported ETF data, source histories and `narratives.json`. Do not overwrite or commit those archives. `MACRO_CACHE_DIR` can isolate a test/preview instance. No API keys or login sessions belong in Git.
+
+## Current validation
+
+On October 10, `npm test` passes all **46 tests**, covering calculations, ingestion, persistence, models, narratives and HTTP behavior. `node --check public/app.js` and `git diff --check` passed. Timestamp rendering was checked for initial waiting state, semantic datetime output and exclusion from other views.
+
+Earlier browser verification passed for narratives (live rankings, source links, filters, refresh, details, errors, routing and 390/768/1440px layouts), metric help (hover/click/keyboard/mobile), and check-in dismissal/reappearance/reload/storage failure. Temporary scripts are `/tmp/check-macro-narratives.cjs`, `/tmp/check-macro-info.cjs` and `/tmp/check-macro-checkin.cjs`; they may not survive sessions and use Playwright installed in the sibling music-time-machine project plus local Chrome. The durable automated tests are under `test/`. Tests that bind localhost and headless Chrome may require sandbox escalation.
+
+## Historical implementation notes
+
+The sections below record the earlier work. Current behavior and user decisions above supersede outdated next-step suggestions.
 
 ## Product intent
 
@@ -51,3 +77,24 @@ Useful next review decisions: whether the topic matching feels accurate enough; 
 ### Narrative review: fundamentals over trading
 
 The user prefers news, network developments and real-world fundamentals over trading/technical narratives. Removed recovery and leverage/downside topics. Added protocol development, network resilience, mining economics, policy and holder safety. Price-led roundups must match a real-world topic in their headline to contribute; unmatched technical recaps are excluded from the discovery list. Existing archives are reclassified at read time, preserving collected history.
+
+## Saved idea — Bitcoin X Narratives (October 10, 2026)
+
+Status: brainstorm saved for later; implementation and paid services are not authorized by this note.
+
+Create a companion to Bitcoin Narratives based on a curated panel of roughly 30–40 public X accounts. Include developers/security researchers, mining/network specialists, institutional adoption observers, policy/macro voices and informed skeptics. Selection should prioritize relevant expertise and perspective over follower count. Let the user add, remove, mute and filter accounts.
+
+Keep the user's preferred focus: news, adoption, fundamentals, security, policy, protocol/network development and real-world events. Exclude trading calls, price targets, technical chart analysis and promotions. Collect new posts periodically, combine author threads, preserve quote/reply context, and distinguish original commentary from plain repost amplification.
+
+Use source-grounded AI clustering if an appropriate service is later configured. Identify emerging themes, author stance (support/dispute/question/report), Bitcoin implications and cited evidence. Keep uncertain material unclassified. Rank primarily by distinct tracked accounts discussing a topic, with separate most-discussed, fastest-spreading and most-debated views. Engagement is supplementary. Show bull/bear narratives plus emerging or unresolved discussions, source posts, disagreements, account coverage and collection gaps. Connect related narratives across news and X. Do not treat rebuttals as endorsements, popularity as truth, or panel results as all of X.
+
+Cost concern: user asked for free alternatives. The official X API currently charges for reads; any future integration should use an explicit budget and measured pilot. Illustrative October 2026 rate was $0.005/post, excluding additional lookups and summarization; verify current pricing before implementation: https://docs.x.com/x-api/getting-started/pricing . No API purchase or account connection has been made.
+
+Alternatives considered and subsequently rejected by the user: (1) a Bitcoin Voices page combining publicly available expert blogs/newsletters and developer discussions, including Bitcoin Optech and Delving Bitcoin; (2) a curated Bluesky panel using public APIs where relevant voices are active; (3) manually pasted X post text plus author/date/link, ranked only within the imported collection. These do not reproduce comprehensive X coverage. Avoid claiming web-search snippets or unstable scraping offer complete account timelines. For zero added API spend, use transparent topic rules/manual labeling initially, or evaluate a local model if the user's hardware supports it. Local inference has hardware/energy costs and needs quality evaluation. Paid AI summaries are a separate cost from source access.
+
+
+### Latest X decision — browser collection remains a brainstorm
+
+After rejecting all three free alternatives, the user asked whether a headless browser could scrape their own X feed. Explained the technical design: a dedicated local browser profile, user-completed login in a visible window, subsequent read-only collection of a bounded number of visible posts, text/author/time/link extraction, deduplication and narrative grouping. Login challenges or access blocks should pause collection for user attention. No browser login or collector was started, and no implementation has been requested after that discussion.
+
+The unresolved product choice is **For You** (personalized narratives appearing in this user's feed) versus **Following/a curated Bitcoin List** (more consistent monitored-account coverage). Neither should be presented as all-X popularity. Explained that avoiding the X API bill does not eliminate optional AI summarization costs. The official X terms checked during this discussion prohibit scraping without prior written consent, so account restriction/reliability concerns were disclosed: https://x.com/en/tos . This is an external platform constraint to reassess, not evidence that the user provided credentials or approved spending. If the user resumes this idea, continue from browser collection rather than recommending the alternatives they rejected.

@@ -1,6 +1,6 @@
 'use strict';
 const $=id=>document.getElementById(id);
-const state={etfPeriod:'monthly',etfMode:'stacked',etfRange:'all',view:'overview',feeds:{},period:365,log:false,macroMetric:'liquidity',search:'',allCompanies:false,busy:false,contextDays:1095,macroPeriod:365,eventMarkers:true,compareFrom:'',compareTo:'',archive:null,modelCutoff:'2023-12-31',modelPeriod:0,modelExtensions:{power:0,s2f:0,realized:0,ma200w:0},modelProjection:false,modelBands:false,modelWeekly:false};
+const state={lastRefreshed:null,etfPeriod:'monthly',etfMode:'stacked',etfRange:'all',view:'overview',feeds:{},period:365,log:false,macroMetric:'liquidity',search:'',allCompanies:false,busy:false,contextDays:1095,macroPeriod:365,eventMarkers:true,compareFrom:'',compareTo:'',archive:null,modelCutoff:'2023-12-31',modelPeriod:0,modelExtensions:{power:0,s2f:0,realized:0,ma200w:0},modelProjection:false,modelBands:false,modelWeekly:false};
 const FEEDS=['spot','bitcoin','sentiment','adoption','macro','calendar','valuation','etf','supply'];
 const PAGES={narratives:['THE STORIES AROUND BITCOIN','What’s moving the conversation.','News, fundamentals and network developments, ranked by coverage.'],models:['VALUATION & LONG-TERM CONTEXT','Price through different lenses.','Compare models, inspect their assumptions, and see where they fall short.'],overview:['THE DAILY PICTURE','A little perspective.','Bitcoin, capital flows, and the forces around them.'],bitcoin:['PRICE, TREND & NETWORK','Understand the asset.','Market structure and the network behind it, in one place.'],adoption:['OWNERSHIP & CAPITAL','Follow the commitment.','Track reported corporate ownership and explore institutional demand.'],macro:['LIQUIDITY, RATES & THE ECONOMY','The bigger picture.','The monetary and economic conditions surrounding Bitcoin.'],sources:['TRANSPARENCY BY DESIGN','Know what you’re reading.','Source health, observation dates, and the assumptions behind each indicator.']};
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -187,7 +187,7 @@ function renderStatus() {
  let current=0,stale=0,missing=0,loading=0,unconnected=0;
  for(const key of FEEDS){const f=state.feeds[key];if(!f){loading++;continue;}if(f.reason==='not-connected'){unconnected++;continue;}if(key==='macro'&&f.data){const statuses=Object.values(f.data.metrics).map(m=>m.status);if(statuses.every(s=>s==='current'))current++;else if(statuses.some(s=>s!=='unavailable'))stale++;else missing++;}else if(f.status==='current')current++;else if(f.status==='stale')stale++;else missing++;}
  const parts=[`${current} / ${FEEDS.length-unconnected} connected feeds current`,...(stale?[`${stale} delayed or partial`]:[]),...(missing?[`${missing} unavailable`]:[]),...(loading?[`${loading} connecting`]:[]),...(unconnected?['ETF import not configured']:[])];
- $('feed-status').innerHTML=`<span class="status-dot ${stale||missing||loading?'warn':''}"></span>${parts.join(' <span aria-hidden="true">·</span> ')}<a class="status-link" href="#sources">Observation dates & source health ↗</a>`;
+ $('feed-status').innerHTML=`<span class="status-dot ${stale||missing||loading?'warn':''}"></span>${parts.join(' <span aria-hidden="true">·</span> ')}<a class="status-link" href="#sources">Observation dates & source health ↗</a>${state.view==='overview'?`<span class="last-refreshed" title="Time this dashboard last finished checking its data feeds. Individual observations may be older; source health is shown separately.">Last refreshed: ${state.lastRefreshed?`<time datetime="${state.lastRefreshed}">${new Date(state.lastRefreshed).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit',timeZoneName:'short'})}</time>`:'Waiting for first refresh…'}</span>`:''}`;
 }
 // SVG charts keep the app independent of external scripts. The range input also exposes data to keyboard users.
 function drawChart(id,rows,series,{log=false,format=money,tooltipFormat=format,domain=null,compactChart=false,events=[],bars=false}={}) {
@@ -239,10 +239,10 @@ async function load(force=false) {
   // Do not replace a focused search field while other feeds complete.
   const active=document.activeElement;if(active?.closest('#etf-import-form')||document.querySelector('#etf-import-form input[type=file]')?.files?.length||active?.id==='company-search'||active?.classList?.contains('chart-range')){renderStatus();}else render();
  }));
- await loadArchive();visitReady=true;saveVisit();
+ await loadArchive();visitReady=true;saveVisit();state.lastRefreshed=new Date().toISOString();
  if(!document.activeElement?.closest('#etf-import-form')&&!document.querySelector('#etf-import-form input[type=file]')?.files?.length&&document.activeElement?.id!=='company-search')render();
  if(state.view==='narratives')loadNarratives(force);
- state.busy=false;$('refresh').disabled=false;$('refresh').innerHTML='<span aria-hidden="true">↻</span> Refresh data';
+ state.busy=false;renderStatus();$('refresh').disabled=false;$('refresh').innerHTML='<span aria-hidden="true">↻</span> Refresh data';
 }
 function priceComparison(){
  const b=data('bitcoin');if(!b)return '';
