@@ -43,3 +43,9 @@ test('monthly comparisons handle February, 30-day months and year boundaries',()
  for(const [previous,current] of [['2026-02-01','2026-03-01'],['2026-04-01','2026-05-01'],['2025-12-01','2026-01-01']])assert.equal(A.monthlyChange([{date:previous,value:100},{date:current,value:110}]),10);
  assert.equal(A.monthlyChange([{date:'2026-01-01',value:100},{date:'2026-03-01',value:110}]),null);
 });
+test('historical technical context matches the displayed current indicators',()=>{
+ const daily=rows('2024-01-01',800,i=>100+i+Math.sin(i)*5),history=A.indicatorHistory(daily),current=A.technicals(daily);
+ assert.ok(Math.abs(history.volatility.at(-1).value-current.volatility)<1e-9);
+ assert.ok(Math.abs(history.distance.at(-1).value-(current.close/current.ma200-1)*100)<1e-9);
+ assert.equal(history.weeklyRsi.at(-1).value,current.weeklyRsi);
+});

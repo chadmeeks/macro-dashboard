@@ -14,3 +14,7 @@ test('concurrent requests share one provider request',async t=>{
 test('no previous data produces unavailable, never zero',async t=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'macro-cache-test-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));const c=new Cache(dir);const result=await c.get('x',1,async()=>{throw new Error('offline');});assert.equal(result.data,null);assert.equal(result.status,'unavailable');assert.equal(c.read('x'),null);
 });
+test('failed source health survives restart until a successful refresh',async t=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'macro-health-test-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));const c=new Cache(dir);await c.get('sample',10000,async()=>({value:1}));await c.get('sample',10000,async()=>{throw new Error('source offline');},true);
+ const reloaded=new Cache(dir);const stale=await reloaded.get('sample',10000,async()=>({value:2}));assert.equal(stale.status,'stale');assert.equal(stale.error,'source offline');const current=await reloaded.get('sample',10000,async()=>({value:2}),true);assert.equal(current.status,'current');assert.equal(current.error,undefined);
+});

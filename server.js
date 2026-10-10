@@ -3,17 +3,35 @@ const http=require('node:http');
 const fs=require('node:fs');
 const path=require('node:path');
 const feeds=require('./lib/data');
+const {NarrativeStore}=require('./lib/narratives');
+const narratives=new NarrativeStore({directory:process.env.MACRO_CACHE_DIR});
 const PUBLIC=path.join(__dirname,'public');
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml'};
 function json(res,status,payload){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(payload));}
+async function readJson(req){
+  let body='';
+  for await(const chunk of req){body+=chunk;if(Buffer.byteLength(body)>600000)throw new Error('Import is too large.');}
+  try{return JSON.parse(body);}catch{throw new Error('Invalid JSON import.');}
+}
 function createServer(){return http.createServer(async(req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');
   try {
     const url=new URL(req.url,'http://localhost');
+    if(url.pathname==='/api/etf/import'&&req.method==='POST'){
+      const origin=req.headers.origin;
+      if(origin&&origin!==`http://${req.headers.host}`)return json(res,403,{error:'Import from this dashboard only.'});
+      if(!req.headers['content-type']?.startsWith('application/json'))return json(res,415,{error:'JSON required.'});
+      try{return json(res,200,await feeds.importEtf(await readJson(req)));}catch(error){return json(res,400,{error:error.message});}
+    }
     if(req.method!=='GET'&&req.method!=='HEAD')return json(res,405,{error:'Method not allowed'});
     if(url.pathname==='/api/health')return json(res,200,{ok:true,version:2});
-    const route=url.pathname.match(/^\/api\/(bitcoin|spot|sentiment|adoption|macro|calendar)$/);
+    if(url.pathname==='/api/narratives'){
+      const days=Number(url.searchParams.get('days')||7),sort=url.searchParams.get('sort')||'attention';
+      if(![1,7,30].includes(days)||!['attention','rising'].includes(sort))return json(res,400,{error:'Choose days=1,7,30 and sort=attention,rising.'});
+      return json(res,200,await narratives.get({days,sort,force:url.searchParams.get('refresh')==='1'}));
+    }
+    const route=url.pathname.match(/^\/api\/(bitcoin|spot|sentiment|adoption|macro|calendar|valuation|etf|history|supply)$/);
     if(route)return json(res,200,await feeds[route[1]](url.searchParams.get('refresh')==='1'));
     if(url.pathname.startsWith('/api/'))return json(res,404,{error:'Unknown API route'});
     const relative=decodeURIComponent(url.pathname==='/'?'/index.html':url.pathname);

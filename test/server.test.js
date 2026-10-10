@@ -1,10 +1,20 @@
-const test=require('node:test');const assert=require('node:assert/strict');const {createServer}=require('../server');
+const test=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs'),os=require('node:os'),path=require('node:path');const cacheDir=fs.mkdtempSync(path.join(os.tmpdir(),'macro-http-'));process.env.MACRO_CACHE_DIR=cacheDir;test.after(()=>fs.rmSync(cacheDir,{recursive:true,force:true}));const {createServer}=require('../server');
 test('serves the dashboard, health endpoint and safe error responses',async t=>{
  const server=createServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));t.after(()=>new Promise(r=>server.close(r)));const url=`http://127.0.0.1:${server.address().port}`;
  assert.equal((await (await fetch(url+'/api/health')).json()).version,2);
  const page=await fetch(url);assert.equal(page.status,200);assert.match(await page.text(),/A little perspective/);
  assert.equal((await fetch(url+'/missing')).status,404);
  assert.equal((await fetch(url+'/api/missing')).status,404);
+ assert.equal((await fetch(url+'/api/narratives?days=3')).status,400);
+ assert.equal((await fetch(url+'/api/narratives?sort=bogus')).status,400);
+ assert.equal((await fetch(url+'/narratives.js')).status,200);
+ assert.equal((await fetch(url+'/narratives.css')).status,200);
  assert.equal((await fetch(url+'/%2e%2e%2fserver.js')).status,403);
  assert.equal((await fetch(url,{method:'POST'})).status,405);
+ const input={source:'Test fixture',universe:'Two test funds',url:'https://example.com/data',csv:'date,net_flow_usd,reported_funds,expected_funds,status\n2026-09-25,100,2,2,complete'};
+ assert.equal((await fetch(url+'/api/etf/import',{method:'POST',headers:{'Content-Type':'application/json',Origin:'https://untrusted.example'},body:JSON.stringify(input)})).status,403);
+ const imported=await fetch(url+'/api/etf/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)});assert.equal(imported.status,200);assert.equal((await imported.json()).data.latest.total,100);
+ const invalid=await fetch(url+'/api/etf/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...input,csv:'not a dataset'})});assert.equal(invalid.status,400);
+ assert.equal((await (await fetch(url+'/api/etf')).json()).data.latest.total,100);
+ const history=await (await fetch(url+'/api/history')).json();assert.ok(history.feeds.some(f=>f.key==='etf'&&f.observations===1));
 });

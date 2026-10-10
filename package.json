@@ -1,6 +1,6 @@
 {
   "name": "macro-dashboard",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "description": "A Bitcoin and macro research dashboard",
   "main": "server.js",

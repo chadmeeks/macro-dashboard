@@ -4,7 +4,13 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#172423"><meta name="description" content="Your daily view of Bitcoin, adoption and the macro landscape.">
   <title>Macro — Bitcoin & the bigger picture</title>
-  <link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="narratives.css">
+  <script src="research.js" defer></script>
+  <script src="models.js" defer></script>
+  <script src="model-view.js" defer></script>
+  <script src="etf-chart.js" defer></script>
+  <script src="narratives.js" defer></script>
+  <script src="metric-help.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -15,8 +21,10 @@
   <nav aria-label="Dashboard">
     <a href="#overview" data-view="overview"><span class="nav-icon">◫</span>Overview</a>
     <a href="#bitcoin" data-view="bitcoin"><span class="nav-icon">₿</span>Bitcoin</a>
+    <a href="#models" data-view="models"><span class="nav-icon">∿</span>Price models</a>
     <a href="#adoption" data-view="adoption"><span class="nav-icon">◈</span>Adoption</a>
     <a href="#macro" data-view="macro"><span class="nav-icon">⌁</span>Macro landscape</a>
+    <a href="#narratives" data-view="narratives"><span class="nav-icon">◉</span>Bitcoin narratives</a>
     <a href="#sources" data-view="sources"><span class="nav-icon">≡</span>Sources & methods</a>
   </nav>
   <div class="sidebar-bottom"><div class="orbit">₿</div><p>See the signal.<br>Keep the context.</p><span>A personal research workspace</span></div>
@@ -24,8 +32,9 @@
 <div class="workspace">
   <header class="topbar"><div class="breadcrumb">WORKSPACE <span>/</span> <strong id="breadcrumb">OVERVIEW</strong></div><div class="toolbar"><span id="today"></span><button class="button" id="refresh"><span aria-hidden="true">↻</span> Refresh data</button></div></header>
   <main id="main" tabindex="-1">
-    <section class="page-heading"><div><p class="eyebrow" id="eyebrow">THE DAILY PICTURE</p><h1 id="page-title">A little perspective.</h1><p class="subtitle" id="page-subtitle">Bitcoin, capital flows, and the forces around them.</p></div><div class="edition"><span class="edition-dot"></span> RESEARCH DASHBOARD <span class="edition-version">02</span></div></section>
+    <section class="page-heading"><div><p class="eyebrow" id="eyebrow">THE DAILY PICTURE</p><h1 id="page-title">A little perspective.</h1><p class="subtitle" id="page-subtitle">Bitcoin, capital flows, and the forces around them.</p></div><div class="edition"><span class="edition-dot"></span> RESEARCH DASHBOARD <span class="edition-version">03</span></div></section>
     <div id="feed-status" class="feed-status" role="status" aria-live="polite">Connecting to data sources…</div>
+    <div id="checkin-feedback" class="sr-only" role="status" aria-live="polite"></div>
     <div id="view"></div>
     <footer><span>macro<span class="orange">·</span> <span class="footer-note">Context before conviction.</span></span><a href="#sources">Sources, definitions & limitations ↗</a></footer>
   </main>
