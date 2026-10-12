@@ -2,6 +2,9 @@ const test=require('node:test');const assert=require('node:assert/strict');const
 test('serves the dashboard, health endpoint and safe error responses',async t=>{
  const server=createServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));t.after(()=>new Promise(r=>server.close(r)));const url=`http://127.0.0.1:${server.address().port}`;
  assert.equal((await (await fetch(url+'/api/health')).json()).version,2);
+ const strategy=await (await fetch(url+'/api/strategy?refresh=1')).json();
+ assert.equal(strategy.status,'snapshot');assert.equal(strategy.data.history.length,122);
+ assert.equal(strategy.data.asOf,'2026-10-05');
  const page=await fetch(url);assert.equal(page.status,200);assert.match(await page.text(),/A little perspective/);
  assert.equal((await fetch(url+'/missing')).status,404);
  assert.equal((await fetch(url+'/api/missing')).status,404);

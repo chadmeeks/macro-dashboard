@@ -45,6 +45,12 @@ Treasury data has no per-company reporting timestamps. A current retrieval is **
 - The earlier stock-to-flow projection and dual-axis M2/BTC overlay were removed from the default experience. US M2 remains in the macro explorer.
 - The old `data/macro-cache.json` is left intact but not used by V2. It contains the prior methodology and must not be mixed into corrected calculations.
 
+### Global M2 and Bitcoin
+
+Macro Landscape includes a combined Global M2 / Bitcoin chart. M2 uses BGeometrics’ public USD aggregate covering 21 economies, not a worldwide census or US M2. The default view has separate labeled dollar axes; Indexed to 100 uses the first exact shared observation date in the chosen 1Y / 3Y / all-history window. Independent axis scaling does not establish correlation. No lead/lag is applied.
+
+`GET /api/globalm2` retrieves [BGeometrics’ chart data](https://charts.bgeometrics.com/files/glm2_in.json) with a one-day cache and existing last-good-data recovery. Observations older than 21 days are marked stale separately from retrieval age. The source supplies weekly aggregate observations; underlying monthly release dates and point-in-time vintages are unavailable. FX affects USD totals. Each line stops at its last observation; no M2 values are carried into the future. Gaps longer than 10 days for M2 or one day for Bitcoin break the line. Tooltip values are exact-date observations, with missing values stated explicitly. [Provider coverage and methodology](https://charts.bgeometrics.com/m2_global.html).
+
 ## Verification
 
 ```sh
@@ -136,6 +142,12 @@ A candle is withheld when any supplied row is partial/pending, has no total, or 
 The Adoption chart defaults to monthly **By ETF** bars over **Since launch**, exposing the sourced history from January 11, 2024. Daily and weekly intervals, net-flow candles, and Latest 60 periods remain available. Each product's period net flow is stacked above or below zero separately; this is net fund demand, not trading volume. Legends and keyboard/hover inspection identify tickers and dollar totals. Incomplete reported periods are withheld rather than silently treating missing funds as zero.
 
 CSV imports optionally include `fund_<ticker>_usd` columns. `not_active` excludes a fund before its first reported date; blank means an active fund has not reported. Numeric counts must reconcile with reported/expected coverage, and per-fund sums must match published totals within independent rounding to $0.1 million. Valid new fund coverage can appear inside a stacked period; aggregate candle coverage rules remain unchanged. Saved source revisions now include per-fund values. The October 5, 2026 Farside snapshot contains 685 supplied dates and up to 12 products. Data remains a sourced snapshot, not an automatic feed.
+
+## Strategy purchase dots
+
+Adoption includes Strategy (formerly MicroStrategy) ledger entries over Bitcoin daily price, with 1Y / 3Y / all-history windows, a log scale, pointer/touch inspection and a keyboard slider. Orange dot area is proportional to reported BTC acquired; height is the reported average acquisition price. Hollow red dots preserve negative acquisition entries. The x-axis uses reporting dates; entries may summarize net activity rather than individual trades. No missing price observations are interpolated.
+
+`GET /api/strategy` serves the committed `data/strategy-purchases.json` snapshot from [Strategy’s official ledger](https://www.strategy.com/ledger), captured October 11, 2026, with 122 rows from August 10, 2020 through October 5, 2026. Reported costs are rounded to USD millions. Direct automated ledger retrieval was blocked, so this dataset is explicitly labeled a saved snapshot; Refresh data does not update it. The Bitcoin price feed remains independent and its coverage/stale status is shown below the chart.
 
 ## Bitcoin narratives preview
 

@@ -17,6 +17,7 @@
 
 .model-controls .card-head{flex-wrap:wrap}.model-controls .card-head>div:first-child{flex:1 1 300px}.model-controls .model-cutoff{flex:0 1 250px}
 
+.strategy-card h2{margin:9px 0}.strategy-chart svg{height:auto;min-height:235px}.strategy-size-key{display:flex;flex-wrap:wrap;gap:24px;margin:12px 0;color:var(--muted);font-size:10px}.strategy-size-key span{display:flex;align-items:center;gap:6px}.strategy-inspection{min-height:3em;margin:12px 0;color:var(--ink);line-height:1.7}
 /* Metric help lives outside cards so charts and scrolling tables cannot clip it. */
 .metric-info{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;padding:0;margin:-3px 0 -3px 4px;border:0;border-radius:50%;background:transparent;color:var(--muted);vertical-align:middle;flex-shrink:0;letter-spacing:normal;text-transform:none;line-height:1}
 .metric-info span{display:flex;align-items:center;justify-content:center;width:14px;height:14px;border:1px solid #a4afa7;border-radius:50%;font-family:Georgia,serif;font-size:10px;font-style:normal;font-weight:600}

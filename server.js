@@ -26,12 +26,13 @@ function createServer(){return http.createServer(async(req,res)=>{
     }
     if(req.method!=='GET'&&req.method!=='HEAD')return json(res,405,{error:'Method not allowed'});
     if(url.pathname==='/api/health')return json(res,200,{ok:true,version:2});
+    if(url.pathname==='/api/strategy')return json(res,200,{status:'snapshot',retrievedAt:'2026-10-11T00:00:00Z',data:require('./data/strategy-purchases.json')});
     if(url.pathname==='/api/narratives'){
       const days=Number(url.searchParams.get('days')||7),sort=url.searchParams.get('sort')||'attention';
       if(![1,7,30].includes(days)||!['attention','rising'].includes(sort))return json(res,400,{error:'Choose days=1,7,30 and sort=attention,rising.'});
       return json(res,200,await narratives.get({days,sort,force:url.searchParams.get('refresh')==='1'}));
     }
-    const route=url.pathname.match(/^\/api\/(bitcoin|spot|sentiment|adoption|macro|calendar|valuation|etf|history|supply)$/);
+    const route=url.pathname.match(/^\/api\/(bitcoin|spot|sentiment|adoption|macro|calendar|valuation|etf|history|supply|globalm2)$/);
     if(route)return json(res,200,await feeds[route[1]](url.searchParams.get('refresh')==='1'));
     if(url.pathname.startsWith('/api/'))return json(res,404,{error:'Unknown API route'});
     const relative=decodeURIComponent(url.pathname==='/'?'/index.html':url.pathname);
