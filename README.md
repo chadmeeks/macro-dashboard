@@ -120,6 +120,10 @@ S2F retains `market cap = exp(14.6) * SF^3.3`, with `SF = (circulating supply - 
 The scorecard reports median absolute percentage error at completed calendar month ends, with dates and counts separately for fitting and subsequent periods. S2F's latter period starts at publication (2019-03-22) and uses observed supply, not forecast supply. Realized price and moving averages are references, not scored forecasts. Every deviation uses a matching observation date; realized price uses its own provider's daily price. Bands use only fitting-period residuals and are not forecast probabilities. Future rows contain scenario values only, never observed prices or reference readings.
 
 
+#### Bitcoin spiral
+
+Price Models includes an interactive Bitcoin Spiral Chart above Model scorecard, using the existing Bitcoin daily history. Time advances clockwise with one revolution per 1,461 days from January 3, 2009; radius is an affine transform of log10(USD price), with labeled decade rings and a positive offset for sub-dollar observations. Colors identify fixed time loops, which differ from actual halving-to-halving periods. All history and Latest loop share the same radial scale and operate independently of the model range controls. Hover/tap inspection and a keyboard slider expose daily dates and prices. No prices are projected; missing daily observations break the curve. Source freshness follows the Bitcoin feed.
+
 #### Extension assumptions
 
 All horizons use calendar years (February 29 clamps to February 28), start at the latest completed price date, and appear dashed. Future rows are excluded from fitting and the scorecard. Missing matching-date inputs withhold the affected scenario.

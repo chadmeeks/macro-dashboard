@@ -1,6 +1,6 @@
 'use strict';
 const $=id=>document.getElementById(id);
-const state={globalM2Period:1095,globalM2Mode:"levels",strategyPeriod:0,strategyLog:false,lastRefreshed:null,etfPeriod:'monthly',etfMode:'stacked',etfRange:'all',view:'overview',feeds:{},period:365,log:false,macroMetric:'liquidity',search:'',allCompanies:false,busy:false,contextDays:1095,macroPeriod:365,eventMarkers:true,compareFrom:'',compareTo:'',archive:null,modelCutoff:'2023-12-31',modelPeriod:0,modelExtensions:{power:0,s2f:0,realized:0,ma200w:0},modelProjection:false,modelBands:false,modelWeekly:false};
+const state={spiralPeriod:'all',globalM2Period:1095,globalM2Mode:"levels",strategyPeriod:0,strategyLog:false,lastRefreshed:null,etfPeriod:'monthly',etfMode:'stacked',etfRange:'all',view:'overview',feeds:{},period:365,log:false,macroMetric:'liquidity',search:'',allCompanies:false,busy:false,contextDays:1095,macroPeriod:365,eventMarkers:true,compareFrom:'',compareTo:'',archive:null,modelCutoff:'2023-12-31',modelPeriod:0,modelExtensions:{power:0,s2f:0,realized:0,ma200w:0},modelProjection:false,modelBands:false,modelWeekly:false};
 const FEEDS=['spot','bitcoin','sentiment','adoption','macro','calendar','valuation','etf','supply','strategy','globalm2'];
 const PAGES={narratives:['THE STORIES AROUND BITCOIN','What’s moving the conversation.','News, fundamentals and network developments, ranked by coverage.'],models:['VALUATION & LONG-TERM CONTEXT','Price through different lenses.','Compare models, inspect their assumptions, and see where they fall short.'],overview:['THE DAILY PICTURE','A little perspective.','Bitcoin, capital flows, and the forces around them.'],bitcoin:['PRICE, TREND & NETWORK','Understand the asset.','Market structure and the network behind it, in one place.'],adoption:['OWNERSHIP & CAPITAL','Follow the commitment.','Track reported corporate ownership and explore institutional demand.'],macro:['LIQUIDITY, RATES & THE ECONOMY','The bigger picture.','The monetary and economic conditions surrounding Bitcoin.'],sources:['TRANSPARENCY BY DESIGN','Know what you’re reading.','Source health, observation dates, and the assumptions behind each indicator.']};
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -217,6 +217,7 @@ function drawChart(id,rows,series,{log=false,format=money,tooltipFormat=format,d
 }
 function chartWindow(rows,days){const end=Date.parse(rows.at(-1)?.date);return days?rows.filter(p=>Date.parse(p.date)>=end-days*86400000):rows;}
 function renderCharts() {
+ renderBitcoinSpiral();
  renderGlobalM2Chart();
  renderStrategyChart();
  renderResearchCharts();
